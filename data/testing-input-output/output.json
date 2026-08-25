@@ -6,7 +6,14 @@
   },
   "config": {
     "project": "Artland AI",
-    "short_name": "artland_ai"
+    "short_name": "artland_ai",
+    "magazine_cover": {
+      "title": "Artistic Landscapes",
+      "issue": "Issue No. 1",
+      "tagline": "AI-Generated Visual Poetry",
+      "subtitle": "Exploring algorithmic synthesis and modern aesthetics",
+      "author": "Dmitrii Zavalin"
+    }
   },
   "results": {
     "status": "success",
