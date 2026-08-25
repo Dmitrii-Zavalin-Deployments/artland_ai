@@ -1,0 +1,11 @@
+numpy
+scikit-image
+opencv-python
+pillow
+torch
+torchvision
+scikit-learn
+pdfkit
+PyPDF2
+
+

@@ -1,3 +1,4 @@
-# artland_ai_sred
+# $PROJECT_NAME
 
-Use it on photo without a digital zoom
+This repository was initialized via Phase T‑1: Preparation
+using the Project Constitution Protocol — High‑Speed Automation Bootstrap.
