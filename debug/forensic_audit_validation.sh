@@ -2,24 +2,17 @@
 set -euo pipefail
 
 echo "=================================================="
-echo "🔍 FORENSIC AUDIT: Missing artistic_painting_processor.py"
+echo "🔍 FORENSIC AUDIT: Missing original_photos.zip"
 echo "=================================================="
 
-echo -e "\n--- 1. Diagnostics: Locating processor files and references ---"
-find . -name "*processor*" -o -name "*painting*" || true
-echo "Searching for references to artistic_painting_processor:"
-grep -rn "artistic_painting_processor" . || true
+echo -e "\n--- 1. Diagnostics: Searching for references to original_photos.zip ---"
+grep -rn "original_photos.zip" . || true
+ls -la data/testing-input-output/ || true
 
-echo -e "\n--- 2. Smoking-Gun Source Audit: Inspecting workflow or caller files ---"
-WORKFLOW_DIR=".github/workflows"
-if [ -d "$WORKFLOW_DIR" ]; then
-    echo "Inspecting workflows for references:"
-    for f in "$WORKFLOW_DIR"/*.yml; do
-        if [ -f "$f" ]; then
-            echo "--- $f ---"
-            cat -n "$f" | grep -C 3 "artistic_painting_processor" || true
-        fi
-    done
-else
-    echo "⚠️ Workflow directory not found."
-fi
+echo -e "\n--- 2. Smoking-Gun Source Audit: Inspecting test/verification scripts ---"
+for test_script in test.sh run_tests.sh verify.sh .github/workflows/*.yml; do
+    if [ -f "$test_script" ]; then
+        echo "Inspecting $test_script:"
+        cat -n "$test_script" | grep -C 3 "original_photos" || true
+    fi
+done
