@@ -302,7 +302,7 @@ jobs:
           echo "------------------------------------------------------------"
 
           PROCESSED_ZIP="data/testing-input-output/processed_photos.zip"
-          INPUT_ZIP="data/testing-input-output/original_photos.zip"
+          INPUT_ZIP="data/testing-input-output/extracted_frames.zip"
 
           echo "📦 Processed ZIP:"
           ls -l "$PROCESSED_ZIP"
