@@ -281,14 +281,96 @@ jobs:
           echo "PEAK_MEM_USAGE=${MAX_RSS_MB}/${TOTAL_MEM_MB}MB" >> $GITHUB_ENV
           echo "✅ Profiler teardown clean. Peak CPU: ${PEAK_CPU}%, Peak Memory: ${MAX_RSS_MB}/${TOTAL_MEM_MB}MB"
 
-      # - name: 🔍 Post-Execution Artifact Verification
-      #   run: |
-      #     # Verify that JSON output manifest has been deterministically compiled
-      #     echo "--- Verifying Generated Output Structure ---"
-      #     ls -l data/testing-input-output/output.json
+      - name: 🔍 Post-Execution Artifact Verification
+        run: |
+          echo "------------------------------------------------------------"
+          echo "🔍 Verifying Generated Output Structure"
+          echo "------------------------------------------------------------"
 
-      #     # Print output manifest summary for log tracing
-      #     head -n 30 data/testing-input-output/output.json
+          # 1) Verify output.json exists
+          ls -l data/testing-input-output/output.json
+          echo
+          echo "📄 Output Manifest (first 30 lines):"
+          head -n 30 data/testing-input-output/output.json
+          echo
+
+          # ------------------------------------------------------------
+          # 2) Verify ZIP 1 — processed photos for video
+          # ------------------------------------------------------------
+          echo "------------------------------------------------------------"
+          echo "🗂️ Verifying ZIP 1: Processed Photos for Video"
+          echo "------------------------------------------------------------"
+
+          PROCESSED_ZIP="data/testing-input-output/processed_photos.zip"
+          INPUT_ZIP="data/testing-input-output/original_photos.zip"
+
+          echo "📦 Processed ZIP:"
+          ls -l "$PROCESSED_ZIP"
+          echo
+
+          echo "📦 Input ZIP:"
+          ls -l "$INPUT_ZIP"
+          echo
+
+          # Count number of images in input ZIP
+          INPUT_COUNT=$(zipinfo -1 "$INPUT_ZIP" | grep -Ei '\.(jpg|png)$' | wc -l)
+          echo "📸 Number of input images: $INPUT_COUNT"
+
+          # Count number of images in processed ZIP
+          PROCESSED_COUNT=$(zipinfo -1 "$PROCESSED_ZIP" | grep -Ei '\.(jpg|png)$' | wc -l)
+          echo "🎨 Number of processed images: $PROCESSED_COUNT"
+
+          # Compare counts
+          if [ "$INPUT_COUNT" -eq "$PROCESSED_COUNT" ]; then
+            echo "✅ Processed ZIP contains the correct number of images."
+          else
+            echo "❌ ERROR: Processed ZIP image count does not match input ZIP."
+            exit 1
+          fi
+
+          echo
+
+          # ------------------------------------------------------------
+          # 3) Verify ZIP 2 — magazine assets
+          # ------------------------------------------------------------
+          echo "------------------------------------------------------------"
+          echo "📚 Verifying ZIP 2: Magazine Assets"
+          echo "------------------------------------------------------------"
+
+          MAGAZINE_ZIP="data/testing-input-output/magazine_assets.zip"
+
+          echo "📦 Magazine ZIP:"
+          ls -l "$MAGAZINE_ZIP"
+          echo
+
+          echo "📄 Listing magazine ZIP contents:"
+          zipinfo -1 "$MAGAZINE_ZIP"
+          echo
+
+          # Check for required files
+          REQUIRED_PDF="book_to_publish/photo_collection.pdf"
+          REQUIRED_BG="book_compilation/background.jpg"
+
+          PDF_PRESENT=$(zipinfo -1 "$MAGAZINE_ZIP" | grep -Fx "$REQUIRED_PDF" | wc -l)
+          BG_PRESENT=$(zipinfo -1 "$MAGAZINE_ZIP" | grep -Fx "$REQUIRED_BG" | wc -l)
+
+          if [ "$PDF_PRESENT" -eq 1 ]; then
+            echo "✅ PDF found: $REQUIRED_PDF"
+          else
+            echo "❌ ERROR: Missing PDF: $REQUIRED_PDF"
+            exit 1
+          fi
+
+          if [ "$BG_PRESENT" -eq 1 ]; then
+            echo "✅ Background found: $REQUIRED_BG"
+          else
+            echo "❌ ERROR: Missing background: $REQUIRED_BG"
+            exit 1
+          fi
+
+          echo "------------------------------------------------------------"
+          echo "🎉 All artifact verification checks passed successfully!"
+          echo "------------------------------------------------------------"
       
       # - name: 🛡 Post-Execution Schema Compliance Audit
       #   run: |
@@ -307,11 +389,16 @@ jobs:
           # 3. Restore stashed changes
           git stash pop || true
 
-          # 4. Add the specific test folder
-          git add data/testing-input-output/
+          echo "📦 Adding Artland AI output artifacts…"
 
-          # 5. Commit/Push with Notes
-          if [ -n "$(git status --porcelain data/testing-input-output/)" ]; then
+          # Explicitly add ONLY the deterministic artifacts:
+          git add \
+            data/testing-input-output/output.json \
+            data/testing-input-output/processed_photos.zip \
+            data/testing-input-output/magazine_assets.zip
+
+          # 4. Commit/Push with Notes
+          if [ -n "$(git status --porcelain data/testing-input-output/output.json data/testing-input-output/processed_photos.zip data/testing-input-output/magazine_assets.zip)" ]; then
             git commit -m "🤖 robot b: sync testing assets [${{ job.status }}]"
             TARGET_COMMIT=$(git rev-parse HEAD)
 
