@@ -1,0 +1,17 @@
+{
+  "inputs": {
+    "input_zip_path": "data/testing-input-output/extracted_frames.zip",
+    "processed_photos_zip_path": "data/testing-input-output/processed_photos.zip",
+    "magazine_assets_zip_path": "data/testing-input-output/magazine_assets.zip"
+  },
+  "config": {
+    "project": "Artland AI",
+    "short_name": "artland_ai"
+  },
+  "results": {
+    "status": "success",
+    "error": "",
+    "processed_photos_zip_path": "data/testing-input-output/processed_photos.zip",
+    "magazine_assets_zip_path": "data/testing-input-output/magazine_assets.zip"
+  }
+}
