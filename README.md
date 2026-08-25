@@ -7,7 +7,29 @@ A deterministic two‑product factory that transforms original photos into:
 
 ### 🔄 Execution Pipeline Architecture
 
-
+```text
+[ Input ZIP (original photos) ] + [ Config ]
+        │
+        ▼
+[ Ingestion & Validation ] ──► [ State Container ]
+                                      │
+                                      ▼
+                          [ Frames Loader ]
+                                      │
+                                      ▼
+                    ┌──────────────────────────────────┐
+                    │                                  │
+                    ▼                                  ▼
+        [ Artistic Pipeline (Video) ]      [ Artistic Pipeline (Magazine) ]
+        (no fading edges)                  (with fading edges)
+        (per-image painting)               (background + PDF)
+                    │                                  │
+                    ▼                                  ▼
+        [ Processed Photos (.zip) ]        [ Magazine Assets (.zip) ]
+                    └──────────────┬───────────────┘
+                                    ▼
+                          [ JSON Output ]
+```
 
 ### 📚 Resources & Documentation
 - **Tutorial/Book:** ***currently in development***
@@ -15,6 +37,12 @@ A deterministic two‑product factory that transforms original photos into:
 ---
 
 ### 🧮 Performance Audit:
+### Audit: 2026-08-25 14:32:54 UTC
+- **Branch:** `main`
+- **Status:** `success`
+- **Run:** [Detailed Execution Logs](https://github.com/Dmitrii-Zavalin-Deployments/artland_ai/actions/runs/32860135151)
+- **CPU Load:** `2.4%`
+- **Memory Usage:** `20/15989MB`
 ### Audit: 2026-08-25 14:30:06 UTC
 - **Branch:** `main`
 - **Status:** `success`
