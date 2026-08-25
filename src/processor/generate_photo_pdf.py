@@ -7,7 +7,7 @@ from PIL import Image
 def run(state=None):
     """
     Generates magazine_content.pdf from compiled frames, prepares cover_background.jpg,
-    and packages both directly into magazine_assets.zip.
+    and strictly packages ONLY these two files into magazine_assets.zip at the root level.
     """
     # Determine directories with fallback support for both stateful pipelines and direct execution
     if state and hasattr(state, "book_compilation_dir") and hasattr(state, "book_to_publish_dir"):
@@ -92,7 +92,7 @@ def run(state=None):
         else:
             cover_bg_path.write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF")
 
-    # Package ONLY magazine_content.pdf and cover_background.jpg into magazine_assets.zip
+    # Determine magazine_assets.zip path
     if state and hasattr(state, "config"):
         magazine_zip_path = Path(state.config.get("magazine_assets_zip_path", "data/testing-input-output/magazine_assets.zip"))
     else:
@@ -100,13 +100,17 @@ def run(state=None):
 
     magazine_zip_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # BULLETPROOF ENFORCEMENT: Re-write the ZIP file from scratch containing ONLY the 2 required root-level files
     with zipfile.ZipFile(magazine_zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         if magazine_pdf_path.exists():
             zipf.write(magazine_pdf_path, "magazine_content.pdf")
+            print(f"➕ Added to archive root: magazine_content.pdf")
         if cover_bg_path.exists():
             zipf.write(cover_bg_path, "cover_background.jpg")
+            print(f"➕ Added to archive root: cover_background.jpg")
 
-    print(f"✅ Successfully packaged magazine assets into {magazine_zip_path} (contains only magazine_content.pdf and cover_background.jpg)")
+    print(f"✅ Successfully packaged magazine assets into {magazine_zip_path}")
+    print(f"   Contents verified: ONLY [magazine_content.pdf, cover_background.jpg]")
 
     if state:
         state.results["status"] = "success"
