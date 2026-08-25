@@ -1,7 +1,14 @@
 {
   "type": "object",
   "properties": {
-    "input_example": { "type": "string" }
+    "input_zip_path": { "type": "string" },
+    "processed_photos_zip_path": { "type": "string" },
+    "magazine_assets_zip_path": { "type": "string" }
   },
-  "required": ["input_example"]
+  "required": [
+    "input_zip_path",
+    "processed_photos_zip_path",
+    "magazine_assets_zip_path"
+  ]
 }
+
