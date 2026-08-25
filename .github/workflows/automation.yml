@@ -357,7 +357,7 @@ jobs:
           EOF
           )
 
-          HEADER=$(cat <<EOF
+          HEADER=$(cat <<'EOF'
           # 🎨 Artland AI
 
           ## 🛠️ Description
