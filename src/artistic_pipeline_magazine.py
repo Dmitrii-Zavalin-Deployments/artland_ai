@@ -4,7 +4,7 @@ from pathlib import Path
 
 # Direct module imports replacing subprocess calls
 try:
-    from processor import artistic_painting_processor, add_fading_edges, generate_background, expand_image, generate_photo_pdf
+    from processor import artistic_painting_processor, add_fading_edges, generate_background, expand_image, generate_photo_pdf, generate_cover
 except ImportError:
     try:
         import artistic_painting_processor
@@ -12,6 +12,7 @@ except ImportError:
         import generate_background
         import expand_image
         import generate_photo_pdf
+        import generate_cover
     except ImportError:
         pass
 
@@ -25,6 +26,7 @@ def run(state):
       2. Background generation
       3. Background expansion
       4. Photo PDF generation
+      5. Magazine Cover HTML generation (No-Default Policy compliant)
     """
 
     try:
@@ -83,6 +85,12 @@ def run(state):
         if 'generate_photo_pdf' in globals() and hasattr(generate_photo_pdf, "run"):
             generate_photo_pdf.run(state)
 
+        # ---------------------------------------------------------
+        # Step 5 — Generate magazine cover HTML (No-Default Policy)
+        # ---------------------------------------------------------
+        if 'generate_cover' in globals() and hasattr(generate_cover, "run"):
+            generate_cover.run(state)
+
         # Mark success
         state.results["status"] = "success"
         state.results["error"] = ""
@@ -90,3 +98,4 @@ def run(state):
     except Exception as e:
         state.results["status"] = "error"
         state.results["error"] = str(e)
+        raise
