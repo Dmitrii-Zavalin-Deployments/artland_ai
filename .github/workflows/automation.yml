@@ -347,9 +347,9 @@ jobs:
           zipinfo -1 "$MAGAZINE_ZIP"
           echo
 
-          # Check for required files
-          REQUIRED_PDF="book_to_publish/photo_collection.pdf"
-          REQUIRED_BG="book_compilation/background.jpg"
+          # Check for required root-level files
+          REQUIRED_PDF="magazine_content.pdf"
+          REQUIRED_BG="cover_background.jpg"
 
           PDF_PRESENT=$(zipinfo -1 "$MAGAZINE_ZIP" | grep -Fx "$REQUIRED_PDF" | wc -l)
           BG_PRESENT=$(zipinfo -1 "$MAGAZINE_ZIP" | grep -Fx "$REQUIRED_BG" | wc -l)
