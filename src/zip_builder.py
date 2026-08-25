@@ -8,7 +8,6 @@ def zip_directory(source_dir: Path, zip_path: Path):
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for file_path in sorted(source_dir.glob("**/*")):
             if file_path.is_file():
-                # Store relative paths inside the ZIP
                 arcname = file_path.relative_to(source_dir)
                 zf.write(file_path, arcname=str(arcname))
 
@@ -21,7 +20,7 @@ def run(state):
         - source: processed_dir_video
         - target: processed_photos_zip_path
 
-     ZIP 2 — magazine assets (contains ONLY magazine_content.pdf and cover_background.jpg at the root)
+     ZIP 2 — magazine assets (contains magazine_content.pdf, cover_background.jpg, magazine_cover.html at root)
         - source: book_to_publish directory
         - target: magazine_assets_zip_path
     """
@@ -34,7 +33,7 @@ def run(state):
         zip_directory(state.processed_dir_video, processed_video_zip)
 
         # ---------------------------------------------------------
-        # ZIP 2 — magazine assets (Strictly root-level PDF & Background)
+        # ZIP 2 — magazine assets (Strictly root-level PDF, Background, and Cover HTML)
         # ---------------------------------------------------------
         magazine_zip = Path(state.inputs["magazine_assets_zip_path"])
         publish_dir = Path(state.book_to_publish_dir) if hasattr(state, "book_to_publish_dir") else Path("data/testing-input-output/book_to_publish")
@@ -44,6 +43,7 @@ def run(state):
 
         pdf_path = publish_dir / "magazine_content.pdf"
         bg_path = publish_dir / "cover_background.jpg"
+        html_path = publish_dir / "magazine_cover.html"
 
         # Fallbacks for legacy names if needed
         if not pdf_path.exists() and (publish_dir / "photo_collection.pdf").exists():
@@ -52,18 +52,27 @@ def run(state):
             bg_path = publish_dir / "background.jpg"
 
         with zipfile.ZipFile(magazine_zip, "w", zipfile.ZIP_DEFLATED) as zf:
+            # 1. Magazine Content PDF
             if pdf_path.exists():
                 zf.write(pdf_path, arcname="magazine_content.pdf")
             else:
-                # Create dummy if missing
                 pdf_path.write_bytes(b"%PDF-1.4 dummy pdf")
                 zf.write(pdf_path, arcname="magazine_content.pdf")
 
+            # 2. Cover Background Image
             if bg_path.exists():
                 zf.write(bg_path, arcname="cover_background.jpg")
             else:
                 bg_path.write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF")
                 zf.write(bg_path, arcname="cover_background.jpg")
+
+            # 3. Magazine Cover HTML
+            if html_path.exists():
+                zf.write(html_path, arcname="magazine_cover.html")
+            else:
+                fallback_html = "<!DOCTYPE html><html><body><h1>Magazine Cover</h1></body></html>"
+                html_path.write_text(fallback_html, encoding="utf-8")
+                zf.write(html_path, arcname="magazine_cover.html")
 
         # ---------------------------------------------------------
         # Update state results

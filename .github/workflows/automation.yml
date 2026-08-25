@@ -350,9 +350,11 @@ jobs:
           # Check for required root-level files
           REQUIRED_PDF="magazine_content.pdf"
           REQUIRED_BG="cover_background.jpg"
+          REQUIRED_HTML="magazine_cover.html"
 
           PDF_PRESENT=$(zipinfo -1 "$MAGAZINE_ZIP" | grep -Fx "$REQUIRED_PDF" | wc -l)
           BG_PRESENT=$(zipinfo -1 "$MAGAZINE_ZIP" | grep -Fx "$REQUIRED_BG" | wc -l)
+          HTML_PRESENT=$(zipinfo -1 "$MAGAZINE_ZIP" | grep -Fx "$REQUIRED_HTML" | wc -l)
 
           if [ "$PDF_PRESENT" -eq 1 ]; then
             echo "✅ PDF found: $REQUIRED_PDF"
@@ -365,6 +367,13 @@ jobs:
             echo "✅ Background found: $REQUIRED_BG"
           else
             echo "❌ ERROR: Missing background: $REQUIRED_BG"
+            exit 1
+          fi
+
+          if [ "$HTML_PRESENT" -eq 1 ]; then
+            echo "✅ Cover HTML found: $REQUIRED_HTML"
+          else
+            echo "❌ ERROR: Missing Cover HTML: $REQUIRED_HTML"
             exit 1
           fi
 
