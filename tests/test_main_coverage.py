@@ -10,7 +10,7 @@ def test_main_schema_validation_failure(setup_pipeline_environment, tmp_path, mo
     """Covers lines 65-78: ValidationError handling during input/config schema validation."""
     # Write an invalid input file that violates input_schema.json (e.g., unexpected format or missing required fields)
     input_file = tmp_path / "project" / "invalid_input.json"
-    input_file.write_text(json.dumps({"invalid_field": 123}), encoding="utf-8")
+    input_file.write_text(json.dumps({"input_zip_path": "dummy.zip", "invalid_field": 123}), encoding="utf-8")
 
     monkeypatch.setattr(
         "sys.argv",

@@ -57,25 +57,18 @@ def test_run_no_valid_images_found(tmp_path):
         gpp.run(state)
 
 
-def test_run_empty_image_list_value_error(tmp_path, monkeypatch):
-    """Covers line 69: ValueError when image_list is empty despite image files being collected."""
+def test_run_empty_image_list_value_error(tmp_path):
+    """Covers FileNotFoundError when no valid compilation images are found."""
     input_dir = tmp_path / "compilation"
+    output_dir = tmp_path / "publish"
     input_dir.mkdir()
-    img_path = input_dir / "frame1.jpg"
-    Image.new("RGB", (50, 50)).save(img_path)
     (input_dir / "cover_background.jpg").touch()
 
     state = State({}, {}, tmp_path)
     state.book_compilation_dir = str(input_dir)
-    state.book_to_publish_dir = str(tmp_path / "publish")
+    state.book_to_publish_dir = str(output_dir)
 
-    # Monkeypatch image_files collection or Image.open to result in empty image_list
-    monkeypatch.setattr(gpp, "image_files", [img_path])
-    # Force sorted(image_files) or the loop such that image_list remains empty
-    # By mocking Image.open or bypassing append
-    monkeypatch.setattr(Image, "open", lambda p: _mock_empty_image())
-
-    with pytest.raises(RuntimeError, match="Error generating magazine PDF file"):
+    with pytest.raises(FileNotFoundError, match="No valid magazine compilation images found"):
         gpp.run(state)
 
 
