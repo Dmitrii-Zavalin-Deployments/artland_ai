@@ -13,15 +13,7 @@ def test_main_schema_validation_failure(setup_pipeline_environment, tmp_path, mo
     """Covers lines 65-78: ValidationError handling during input/config schema validation."""
     # Write an invalid input file that violates input_schema.json
     input_file = tmp_path / "project" / "invalid_input.json"
-    input_file.write_text(json.dumps({"input_zip_path": 123, "processed_photos_zip_path": "processed.zip", "magazine_assets_zip_path": "magazine.zip"}), encoding="utf-8")
-    
-    # Create valid zip file containing a valid JPEG image so image loaders/backends succeed
-    dummy_zip = tmp_path / "project" / "dummy.zip"
-    img_byte_arr = io.BytesIO()
-    Image.new("RGB", (10, 10), color="red").save(img_byte_arr, format="JPEG")
-    
-    with zipfile.ZipFile(dummy_zip, "w") as zf:
-        zf.writestr("frame.jpg", img_byte_arr.getvalue())
+    input_file.write_text(json.dumps({"input_zip_path": "dummy.zip", "processed_photos_zip_path": "processed.zip", "magazine_assets_zip_path": "magazine.zip", "invalid_schema_field": {"nested": [1, 2, 3]}}))
 
     monkeypatch.setattr(
         "sys.argv",
