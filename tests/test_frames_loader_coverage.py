@@ -75,9 +75,8 @@ def test_frames_loader_exception_handling_block(setup_pipeline_environment, tmp_
     state.inputs = {"input_zip_path": str(zip_file)}
     state.results = None  # Force None to test line 56-57 initialization inside exception handler
 
-    with pytest.raises(RuntimeError):
-        with pytest.raises(zipfile.BadZipFile):
-            frames_loader.run(state)
+    with pytest.raises(RuntimeError), pytest.raises(zipfile.BadZipFile):
+        frames_loader.run(state)
 
     assert state.results["status"] == "error"
     assert "File is not a zip file" in state.results["error"] or len(state.results["error"]) > 0
