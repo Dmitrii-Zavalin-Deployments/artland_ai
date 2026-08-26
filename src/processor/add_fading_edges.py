@@ -1,8 +1,11 @@
 # src/processor/add_fading_edges.py
+import logging
 from pathlib import Path
 
 import cv2
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 def apply_proportional_whitening(input_image_path, config):
@@ -11,6 +14,7 @@ def apply_proportional_whitening(input_image_path, config):
     to the edges with proportions retrieved strictly from config (No-Default Policy).
     """
     input_path = Path(input_image_path)
+    logger.debug("Checking input image for fading edges at: %s", input_path)
     if not input_path.exists():
         raise FileNotFoundError(
             f"❌ NO-DEFAULT POLICY VIOLATION: Input image for fading edges not found at '{input_path}'."
@@ -50,6 +54,8 @@ def apply_proportional_whitening(input_image_path, config):
     a4_height = int(a4_height)
     tb_divisor = int(tb_divisor)
     lr_divisor = int(lr_divisor)
+
+    logger.debug("Applying proportional whitening on canvas size %dx%d", a4_width, a4_height)
 
     # White canvas background
     a4_canvas = np.ones((a4_height, a4_width, 3), dtype=np.uint8) * 255
@@ -93,7 +99,7 @@ def apply_proportional_whitening(input_image_path, config):
 
     # Overwrite input path for pipeline tracking
     cv2.imwrite(str(input_path), a4_canvas)
-    print(f"✅ Proportional whitened edges applied and saved to: {input_path}")
+    logger.info("✅ Proportional whitened edges applied and saved to: %s", input_path)
 
 
 def run(state=None):
@@ -101,6 +107,7 @@ def run(state=None):
     Pipeline execution entry point called by artistic_pipeline_magazine.py.
     Enforces strict state validation.
     """
+    logger.info("Starting add_fading_edges execution.")
     try:
         if not state:
             raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object is required for add_fading_edges execution.")
@@ -118,7 +125,8 @@ def run(state=None):
             raise KeyError("❌ NO-DEFAULT POLICY VIOLATION: 'fading_edges' configuration block is missing from config.json.")
 
         apply_proportional_whitening(input_image_path, config=config)
+        logger.info("add_fading_edges execution completed successfully.")
 
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
-        print(f"❌ CRITICAL PIPELINE HALT in add_fading_edges: {e}")
+        logger.exception("❌ CRITICAL PIPELINE HALT in add_fading_edges: %s", e)
         raise RuntimeError(f"[ERROR] Error processing fading edges: {e}")

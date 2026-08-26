@@ -1,11 +1,15 @@
 # src/zip_builder.py
+import logging
 import zipfile
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def zip_directory(source_dir: Path, zip_path: Path):
     """Utility: zip all files inside a directory under strict No-Default checks."""
     source_dir = Path(source_dir)
+    logger.debug("Checking source directory for zipping: %s", source_dir)
     if not source_dir.exists() or not source_dir.is_dir():
         raise FileNotFoundError(
             f"❌ NO-DEFAULT POLICY VIOLATION: Source directory for video photos not found at '{source_dir}'."
@@ -19,10 +23,12 @@ def zip_directory(source_dir: Path, zip_path: Path):
         )
         
     zip_path.parent.mkdir(parents=True, exist_ok=True)
+    logger.info("Zipping %d file(s) from %s into %s", len(files), source_dir, zip_path)
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for file_path in sorted(files):
             arcname = file_path.relative_to(source_dir)
             zf.write(file_path, arcname=str(arcname))
+    logger.debug("Successfully created zip archive at: %s", zip_path)
 
 
 def run(state):
@@ -36,21 +42,29 @@ def run(state):
        - source: book_to_publish directory
        - target: magazine_assets_zip_path
     """
+    logger.info("Starting zip_builder execution.")
     try:
         # ---------------------------------------------------------
         # ZIP 1 — processed photos for video
         # ---------------------------------------------------------
+        if not hasattr(state, "inputs") or "processed_photos_zip_path" not in state.inputs:
+            raise KeyError("Required key 'processed_photos_zip_path' is missing from state inputs.")
+
         processed_video_zip = Path(state.inputs["processed_photos_zip_path"])
         source_video_dir = (
             Path(state.processed_dir_video) 
             if hasattr(state, "processed_dir_video") and state.processed_dir_video 
             else Path("data/testing-input-output/processed_video")
         )
+        logger.info("Building ZIP 1 (video photos) from %s to %s", source_video_dir, processed_video_zip)
         zip_directory(source_video_dir, processed_video_zip)
 
         # ---------------------------------------------------------
         # ZIP 2 — magazine assets (Strict root-level PDF, Background, and Cover HTML)
         # ---------------------------------------------------------
+        if "magazine_assets_zip_path" not in state.inputs:
+            raise KeyError("Required key 'magazine_assets_zip_path' is missing from state inputs.")
+
         magazine_zip = Path(state.inputs["magazine_assets_zip_path"])
         publish_dir = (
             Path(state.book_to_publish_dir) 
@@ -89,28 +103,32 @@ def run(state):
             )
 
         # Package verified real assets securely into the ZIP archive
+        logger.info("Building ZIP 2 (magazine assets) to %s", magazine_zip)
         with zipfile.ZipFile(magazine_zip, "w", zipfile.ZIP_DEFLATED) as zf:
             zf.write(pdf_path, arcname="magazine_content.pdf")
-            print("✅ Verified Asset Added: magazine_content.pdf")
+            logger.info("✅ Verified Asset Added: magazine_content.pdf")
 
             zf.write(bg_path, arcname="cover_background.jpg")
-            print("✅ Verified Asset Added: cover_background.jpg")
+            logger.info("✅ Verified Asset Added: cover_background.jpg")
 
             zf.write(html_path, arcname="magazine_cover.html")
-            print("✅ Verified Asset Added: magazine_cover.html")
+            logger.info("✅ Verified Asset Added: magazine_cover.html")
 
         # ---------------------------------------------------------
         # Update state results
         # ---------------------------------------------------------
+        if not hasattr(state, "results") or state.results is None:
+            state.results = {}
         state.results["processed_photos_zip_path"] = str(processed_video_zip)
         state.results["magazine_assets_zip_path"] = str(magazine_zip)
         state.results["status"] = "success"
         state.results["error"] = ""
+        logger.info("Zip builder execution completed successfully.")
 
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
         if not hasattr(state, "results") or state.results is None:
             state.results = {}
         state.results["status"] = "error"
         state.results["error"] = str(e)
-        print(f"❌ CRITICAL PIPELINE HALT in zip_builder: {e}")
+        logger.exception("❌ CRITICAL PIPELINE HALT in zip_builder: %s", e)
         raise

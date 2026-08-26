@@ -1,7 +1,10 @@
 # src/processor/expand_image.py
+import logging
 from pathlib import Path
 
 from PIL import Image
+
+logger = logging.getLogger(__name__)
 
 
 def expand_background_image(image_path, scale_factor_y, num_repeats_x):
@@ -11,6 +14,7 @@ def expand_background_image(image_path, scale_factor_y, num_repeats_x):
     Enforces No-Default Policy.
     """
     image_path = Path(image_path)
+    logger.debug("Checking background image at: %s", image_path)
     if not image_path.exists():
         raise FileNotFoundError(
             f"❌ NO-DEFAULT POLICY VIOLATION: Background image not found at '{image_path}'."
@@ -34,7 +38,7 @@ def expand_background_image(image_path, scale_factor_y, num_repeats_x):
 
         # Overwrite the original image file
         new_image.save(image_path)
-        print(f"✅ Image successfully expanded and saved to: {image_path}")
+        logger.info("✅ Image successfully expanded and saved to: %s", image_path)
 
 
 def run(state=None):
@@ -42,6 +46,7 @@ def run(state=None):
     Pipeline execution entry point called by artistic_pipeline_magazine.py.
     Enforces strict state and config validation.
     """
+    logger.info("Starting expand_image execution.")
     try:
         if not state:
             raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object is required for expand_image execution.")
@@ -84,7 +89,8 @@ def run(state=None):
             )
 
         expand_background_image(image_path, scale_factor_y, num_repeats_x)
+        logger.info("expand_image execution completed successfully.")
 
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
-        print(f"❌ CRITICAL PIPELINE HALT in expand_image: {e}")
+        logger.exception("❌ CRITICAL PIPELINE HALT in expand_image: %s", e)
         raise RuntimeError(f"[ERROR] Error expanding image: {e}")

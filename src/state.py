@@ -1,11 +1,22 @@
 # src/state.py
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class State:
     def __init__(self, inputs, config, input_output_folder):
+        logger.info("Initializing State management instance.")
+        if not isinstance(inputs, dict):
+            raise TypeError("❌ NO-DEFAULT POLICY VIOLATION: 'inputs' must be a valid dictionary.")
+        if not isinstance(config, dict):
+            raise TypeError("❌ NO-DEFAULT POLICY VIOLATION: 'config' must be a valid dictionary.")
+        if not input_output_folder:
+            raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'input_output_folder' is missing or empty.")
+
         self.inputs = inputs
         self.config = config
         self.results = {
@@ -31,18 +42,24 @@ class State:
         
         # Dynamic per-frame path tracker for active processors
         self.current_frame_path = None
+        logger.debug("State initialized successfully with base directory: %s", base_dir)
 
     def write_output_json(self, output_json_path):
-        # Ensure date_time is present and up to date when writing output
-        if "date_time" not in self.results:
-            self.results["date_time"] = datetime.now(timezone.utc).isoformat()
-            
-        output_data = {
-            "inputs": self.inputs,
-            "config": self.config,
-            "results": self.results
-        }
-        out_path = Path(output_json_path)
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(out_path, "w") as f:
-            json.dump(output_data, f, indent=2)
+        try:
+            # Ensure date_time is present and up to date when writing output
+            if "date_time" not in self.results:
+                self.results["date_time"] = datetime.now(timezone.utc).isoformat()
+                
+            output_data = {
+                "inputs": self.inputs,
+                "config": self.config,
+                "results": self.results
+            }
+            out_path = Path(output_json_path)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            logger.info("Writing output JSON to path: %s", out_path)
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(output_data, f, indent=2)
+        except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
+            logger.exception("❌ CRITICAL EXCEPTION writing output JSON: %s", e)
+            raise RuntimeError(f"Could not write output JSON to {output_json_path}: {e}") from e

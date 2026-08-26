@@ -1,4 +1,5 @@
 # src/artistic_pipeline_magazine.py
+import logging
 import shutil
 from pathlib import Path
 
@@ -10,6 +11,8 @@ from processor import (
     generate_cover,
     generate_photo_pdf,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def run(state):
@@ -25,8 +28,10 @@ def run(state):
 
     Enforces No-Default Policy: Fails loud and fast if any processor or asset is missing.
     """
+    logger.info("Starting artistic pipeline magazine execution.")
     try:
         # Ensure working directories exist
+        logger.debug("Ensuring working directories exist for magazine pipeline.")
         state.processed_dir_magazine.mkdir(parents=True, exist_ok=True)
         state.book_compilation_dir.mkdir(parents=True, exist_ok=True)
         state.book_to_publish_dir.mkdir(parents=True, exist_ok=True)
@@ -40,6 +45,7 @@ def run(state):
         # ---------------------------------------------------------
         # Step 1 — Artistic processing WITH fading edges
         # ---------------------------------------------------------
+        logger.info("Step 1: Starting artistic processing with fading edges for %d frame(s).", len(state.frame_paths))
         for frame_path in state.frame_paths:
             frame_path = Path(frame_path)
             working_frame_path = state.original_dir / frame_path.name
@@ -54,11 +60,13 @@ def run(state):
             # Direct execution of artistic painting processor
             if not hasattr(artistic_painting_processor, "run"):
                 raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'artistic_painting_processor' lacks a 'run' method.")
+            logger.debug("Running artistic_painting_processor on: %s", working_frame_path)
             artistic_painting_processor.run(state)
 
             # Direct execution of fading edges processor
             if not hasattr(add_fading_edges, "run"):
                 raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'add_fading_edges' lacks a 'run' method.")
+            logger.debug("Running add_fading_edges on: %s", working_frame_path)
             add_fading_edges.run(state)
 
             # Strict check that working file exists after processing
@@ -77,6 +85,7 @@ def run(state):
         # ---------------------------------------------------------
         # Step 2 — Background generation
         # ---------------------------------------------------------
+        logger.info("Step 2: Starting background generation.")
         for img_path in state.processed_frame_paths_magazine:
             target_bg_path = state.book_compilation_dir / Path(img_path).name
             if Path(img_path).resolve() != target_bg_path.resolve():
@@ -89,6 +98,7 @@ def run(state):
         # ---------------------------------------------------------
         # Step 3 — Expand background
         # ---------------------------------------------------------
+        logger.info("Step 3: Starting background expansion.")
         if not hasattr(expand_image, "run"):
             raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'expand_image' lacks a 'run' method.")
         expand_image.run(state)
@@ -96,6 +106,7 @@ def run(state):
         # ---------------------------------------------------------
         # Step 4 — Generate photo PDF
         # ---------------------------------------------------------
+        logger.info("Step 4: Starting photo PDF generation.")
         if not hasattr(generate_photo_pdf, "run"):
             raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'generate_photo_pdf' lacks a 'run' method.")
         generate_photo_pdf.run(state)
@@ -103,18 +114,22 @@ def run(state):
         # ---------------------------------------------------------
         # Step 5 — Generate magazine cover HTML (No-Default Policy)
         # ---------------------------------------------------------
+        logger.info("Step 5: Starting magazine cover HTML generation.")
         if not hasattr(generate_cover, "run"):
             raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'generate_cover' lacks a 'run' method.")
         generate_cover.run(state)
 
         # Mark success
+        if not hasattr(state, "results") or state.results is None:
+            state.results = {}
         state.results["status"] = "success"
         state.results["error"] = ""
+        logger.info("Artistic pipeline magazine completed successfully.")
 
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
         if not hasattr(state, "results") or state.results is None:
             state.results = {}
         state.results["status"] = "error"
         state.results["error"] = str(e)
-        print(f"❌ CRITICAL PIPELINE HALT in artistic_pipeline_magazine: {e}")
+        logger.exception("❌ CRITICAL PIPELINE HALT in artistic_pipeline_magazine: %s", e)
         raise

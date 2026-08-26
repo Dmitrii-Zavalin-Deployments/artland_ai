@@ -1,8 +1,11 @@
 # src/artistic_pipeline_video.py
+import logging
 import shutil
 from pathlib import Path
 
 from processor import artistic_painting_processor
+
+logger = logging.getLogger(__name__)
 
 
 def run(state):
@@ -18,8 +21,10 @@ def run(state):
           * strictly verify and save output to processed_dir_video/<name>.jpg
     Enforces No-Default Policy: Fails immediately if processors or outputs are missing.
     """
+    logger.info("Starting artistic pipeline video execution.")
     try:
         # Ensure working directories exist
+        logger.debug("Ensuring working directories exist for video pipeline.")
         state.processed_dir_video.mkdir(parents=True, exist_ok=True)
         state.original_dir.mkdir(parents=True, exist_ok=True)
 
@@ -28,6 +33,7 @@ def run(state):
         if not hasattr(state, "frame_paths") or not state.frame_paths:
             raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: No frames found in state.frame_paths for video pipeline.")
 
+        logger.info("Processing %d frame(s) for video pipeline.", len(state.frame_paths))
         for frame_path in state.frame_paths:
             frame_path = Path(frame_path)
             working_frame_path = state.original_dir / frame_path.name
@@ -43,6 +49,7 @@ def run(state):
             if not hasattr(artistic_painting_processor, "run"):
                 raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'artistic_painting_processor' lacks a 'run' method.")
             
+            logger.debug("Running artistic_painting_processor on: %s", working_frame_path)
             artistic_painting_processor.run(state)
 
             # Strict No-Default Check: Processor must have produced the processed working file
@@ -60,13 +67,16 @@ def run(state):
             state.processed_frame_paths_video.append(output_path)
 
         # Mark success
+        if not hasattr(state, "results") or state.results is None:
+            state.results = {}
         state.results["status"] = "success"
         state.results["error"] = ""
+        logger.info("Artistic pipeline video completed successfully.")
 
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
         if not hasattr(state, "results") or state.results is None:
             state.results = {}
         state.results["status"] = "error"
         state.results["error"] = str(e)
-        print(f"❌ CRITICAL PIPELINE HALT in artistic_pipeline_video: {e}")
+        logger.exception("❌ CRITICAL PIPELINE HALT in artistic_pipeline_video: %s", e)
         raise

@@ -1,4 +1,5 @@
 # src/processor/generate_background.py
+import logging
 import random
 from pathlib import Path
 
@@ -7,10 +8,13 @@ import numpy as np
 from PIL import Image
 from sklearn.cluster import KMeans
 
+logger = logging.getLogger(__name__)
+
 
 def extract_colors_from_image(image_path, num_colors, brightness_threshold):
     """Extracts dominant colors from a single image using config parameters."""
     image_path = Path(image_path)
+    logger.debug("Checking image path for color extraction: %s", image_path)
     if not image_path.exists():
         raise FileNotFoundError(
             f"❌ NO-DEFAULT POLICY VIOLATION: Image not found at '{image_path}'."
@@ -35,12 +39,14 @@ def extract_colors_from_image(image_path, num_colors, brightness_threshold):
         if hsv[2] > int(brightness_threshold):  # V-channel brightness check
             filtered_colors.append(color.tolist())
             
-    print(f"✅ Colors extracted from {image_path}: {filtered_colors}")
+    logger.debug("Colors extracted from %s: %s", image_path, filtered_colors)
     return filtered_colors
+
 
 def process_images(image_folder, num_colors, brightness_threshold):
     """Loops through images, extracts colors, and accumulates unique colors."""
     image_folder = Path(image_folder)
+    logger.debug("Processing images in folder: %s", image_folder)
     if not image_folder.exists():
         raise FileNotFoundError(
             f"❌ NO-DEFAULT POLICY VIOLATION: Image folder not found at '{image_folder}'."
@@ -57,8 +63,9 @@ def process_images(image_folder, num_colors, brightness_threshold):
         extracted = extract_colors_from_image(image_path, num_colors, brightness_threshold)
         unique_colors.extend(extracted)
         
-    print(f"✅ Updated unique color list: {unique_colors}")
+    logger.debug("Updated unique color list: %s", unique_colors)
     return unique_colors
+
 
 def group_colors_by_lightness(colors):
     """Reorders colors so lighter shades move toward the top and darker ones toward the bottom."""
@@ -68,8 +75,10 @@ def group_colors_by_lightness(colors):
     colors_sorted = [color for _, color in sorted(zip([hsv[2] for hsv in colors_hsv], colors), reverse=True)]
     return colors_sorted
 
+
 def create_smoother_gradient_background(colors, width, height):
     """Generates a highly blended, grouped-color gradient background with light-to-dark transition."""
+    logger.debug("Creating smoother gradient background of dimensions %sx%s", width, height)
     gradient = np.zeros((int(height), int(width), 3), dtype=np.uint8)
     colors_sorted = group_colors_by_lightness(colors)
 
@@ -96,12 +105,14 @@ def create_smoother_gradient_background(colors, width, height):
     gradient = cv2.GaussianBlur(gradient, (15, 15), 5)
     return gradient
 
+
 def save_background(image_array, output_path):
     """Saves the generated background image with specified DPI."""
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     background = Image.fromarray(image_array)
     background.save(output_path, dpi=(350, 350))
+    logger.debug("Background saved successfully to: %s", output_path)
 
 
 def run(state=None):
@@ -109,6 +120,7 @@ def run(state=None):
     Pipeline execution entry point called by artistic_pipeline_magazine.py.
     Enforces strict state validation and No-Default Policy.
     """
+    logger.info("Starting generate_background execution.")
     try:
         if not state:
             raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object is required for generate_background execution.")
@@ -151,15 +163,15 @@ def run(state=None):
 
         # Use config-defined fallback colors if none extracted
         if not unique_colors:
-            print("⚠️ No colors extracted from images. Using config fallback colors.")
+            logger.warning("⚠️ No colors extracted from images. Using config fallback colors.")
             unique_colors = fallback_colors
 
         # Generate and save background
         background_array = create_smoother_gradient_background(unique_colors, width, height)
         save_background(background_array, output_path)
 
-        print(f"✅ Background generated successfully and saved as: {output_path}")
+        logger.info("✅ Background generated successfully and saved as: %s", output_path)
 
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
-        print(f"❌ CRITICAL PIPELINE HALT in generate_background: {e}")
+        logger.exception("❌ CRITICAL PIPELINE HALT in generate_background: %s", e)
         raise RuntimeError(f"[ERROR] Error generating background: {e}")

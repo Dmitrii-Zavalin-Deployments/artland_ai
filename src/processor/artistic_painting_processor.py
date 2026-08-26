@@ -1,9 +1,12 @@
 # src/processor/artistic_painting_processor.py
+import logging
 from pathlib import Path
 
 import cv2
 import numpy as np
 from skimage import io
+
+logger = logging.getLogger(__name__)
 
 
 def refined_artistic_transformation(image_path, output_path, config):
@@ -58,55 +61,55 @@ def refined_artistic_transformation(image_path, output_path, config):
 
     # Load the original photo
     image = io.imread(str(image_path))
-    print("✅ Image loaded successfully for artistic transformation.")
+    logger.info("✅ Image loaded successfully for artistic transformation.")
 
     # Convert to OpenCV format (BGR)
     image_cv = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
     # 1. Gradient Preprocessing with Balanced Smoothing
-    print("⏳ Preprocessing gradients to maintain tonal consistency...")
+    logger.debug("Preprocessing gradients to maintain tonal consistency...")
     preprocessed_image = cv2.bilateralFilter(image_cv, d=int(bilateral_d), sigmaColor=float(sigma_color), sigmaSpace=float(sigma_space))
 
     # 2. Edge Preservation for Medium-Sized Objects
-    print("⏳ Refining edges to retain medium-sized elements...")
+    logger.debug("Refining edges to retain medium-sized elements...")
     edges = cv2.Canny(preprocessed_image, threshold1=int(canny_t1), threshold2=int(canny_t2))
     edges_dilated = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
     edge_preserved_image = cv2.addWeighted(preprocessed_image, 1, cv2.cvtColor(edges_dilated, cv2.COLOR_GRAY2BGR), 0.3, 0)
 
     # 3. Dynamic Depth Enhancement for 3D Effect
-    print("⏳ Enhancing shadows and highlights for dimensionality...")
+    logger.debug("Enhancing shadows and highlights for dimensionality...")
     depth_enhanced_image = cv2.convertScaleAbs(edge_preserved_image, alpha=float(depth_alpha), beta=float(depth_beta))
 
     # 4. Adaptive Color Boost
-    print("⏳ Amplifying color vibrancy and contrast...")
+    logger.debug("Amplifying color vibrancy and contrast...")
     hsv_image = cv2.cvtColor(depth_enhanced_image, cv2.COLOR_BGR2HSV)
     hsv_image[:, :, 1] = cv2.multiply(hsv_image[:, :, 1], float(sat_mult))
     hsv_image[:, :, 2] = cv2.multiply(hsv_image[:, :, 2], float(bright_mult))
     color_rich_image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
 
     # 5. Refined Stylization
-    print("⏳ Applying artistic brushstroke effects...")
+    logger.debug("Applying artistic brushstroke effects...")
     stylized_image = cv2.stylization(color_rich_image, sigma_s=float(style_s), sigma_r=float(style_r))
 
     # 6. Sharpening and Texture Refinement
-    print("⏳ Enhancing sharpness for clarity of medium-sized objects...")
+    logger.debug("Enhancing sharpness for clarity of medium-sized objects...")
     sharpened_image = cv2.detailEnhance(stylized_image, sigma_s=float(detail_s), sigma_r=float(detail_r))
 
     # 7. Selective Noise and Anti-Aliasing
-    print("⏳ Adding selective noise to smooth areas and refining edges...")
+    logger.debug("Adding selective noise to smooth areas and refining edges...")
     noise = np.random.normal(0, 5, sharpened_image.shape).astype(np.uint8)
     noised_image = cv2.addWeighted(sharpened_image, 0.97, noise, 0.03, 0)
     anti_aliased_image = cv2.bilateralFilter(noised_image, d=5, sigmaColor=50, sigmaSpace=50)
 
     # 8. Lighting Simulation for Cohesiveness
-    print("⏳ Simulating realistic lighting effects...")
+    logger.debug("Simulating realistic lighting effects...")
     lighting_map = cv2.GaussianBlur(anti_aliased_image, (11, 11), 5)
     final_image = cv2.addWeighted(anti_aliased_image, 0.92, lighting_map, 0.08, 0)
 
     # Save the final artistic painting
     output_path.parent.mkdir(parents=True, exist_ok=True)
     io.imsave(str(output_path), cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB))
-    print(f"✅ Final artistic painting saved to: {output_path}")
+    logger.info("✅ Final artistic painting saved to: %s", output_path)
 
 
 def run(state=None):
@@ -114,6 +117,7 @@ def run(state=None):
     Pipeline execution entry point called by video and magazine pipelines.
     Enforces strict state validation.
     """
+    logger.info("Starting artistic_painting_processor execution.")
     try:
         if not state:
             raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object is required for artistic_painting_processor execution.")
@@ -131,7 +135,8 @@ def run(state=None):
             raise KeyError("❌ NO-DEFAULT POLICY VIOLATION: 'artistic_painting' configuration block is missing from config.json.")
 
         refined_artistic_transformation(image_path, image_path, config=config)
+        logger.info("artistic_painting_processor execution completed successfully.")
 
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
-        print(f"❌ CRITICAL PIPELINE HALT in artistic_painting_processor: {e}")
+        logger.exception("❌ CRITICAL PIPELINE HALT in artistic_painting_processor: %s", e)
         raise RuntimeError(f"[ERROR] Error processing the image: {e}")
