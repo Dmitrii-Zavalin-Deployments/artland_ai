@@ -8,11 +8,15 @@ from PIL import Image
 
 def extract_colors_from_image(image_path, num_colors, brightness_threshold):
     """Extracts dominant colors from a single image using config parameters."""
-    print(f"[INFO] Processing image: {image_path}")
+    image_path = Path(image_path)
+    if not image_path.exists():
+        raise FileNotFoundError(
+            f"❌ NO-DEFAULT POLICY VIOLATION: Image not found at '{image_path}'."
+        )
+
     image = cv2.imread(str(image_path))
     if image is None:
-        print(f"[WARNING] Could not read image: {image_path}")
-        return []
+        raise ValueError(f"❌ NO-DEFAULT POLICY VIOLATION: Failed to read image from '{image_path}' via OpenCV.")
     
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     reshaped_image = image.reshape(-1, 3)
@@ -29,27 +33,29 @@ def extract_colors_from_image(image_path, num_colors, brightness_threshold):
         if hsv[2] > int(brightness_threshold):  # V-channel brightness check
             filtered_colors.append(color.tolist())
             
-    print(f"[INFO] Colors extracted from {image_path}: {filtered_colors}")
+    print(f"✅ Colors extracted from {image_path}: {filtered_colors}")
     return filtered_colors
 
 def process_images(image_folder, num_colors, brightness_threshold):
     """Loops through images, extracts colors, and accumulates unique colors."""
     image_folder = Path(image_folder)
     if not image_folder.exists():
-        print(f"[ERROR] Image folder not found: {image_folder}")
-        return []
+        raise FileNotFoundError(
+            f"❌ NO-DEFAULT POLICY VIOLATION: Image folder not found at '{image_folder}'."
+        )
 
     image_files = sorted(list(image_folder.glob("*.jpg")) + list(image_folder.glob("*.png")))
     if not image_files:
-        print("[ERROR] No image files found in the folder!")
-        return []
+        raise FileNotFoundError(
+            f"❌ NO-DEFAULT POLICY VIOLATION: No image files (*.jpg, *.png) found in folder '{image_folder}'."
+        )
 
     unique_colors = []
     for image_path in image_files:
         extracted = extract_colors_from_image(image_path, num_colors, brightness_threshold)
         unique_colors.extend(extracted)
         
-    print(f"[INFO] Updated unique color list: {unique_colors}")
+    print(f"✅ Updated unique color list: {unique_colors}")
     return unique_colors
 
 def group_colors_by_lightness(colors):
@@ -90,6 +96,8 @@ def create_smoother_gradient_background(colors, width, height):
 
 def save_background(image_array, output_path):
     """Saves the generated background image with specified DPI."""
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     background = Image.fromarray(image_array)
     background.save(output_path, dpi=(350, 350))
 
@@ -97,41 +105,62 @@ def save_background(image_array, output_path):
 def run(state=None):
     """
     Pipeline execution entry point called by artistic_pipeline_magazine.py.
+    Enforces strict state validation and No-Default Policy.
     """
-    image_folder = Path("data/testing-input-output/book_compilation")
-    output_path = image_folder / "cover_background.jpg"
-    
-    config = {}
-    if state:
-        if hasattr(state, "book_compilation_dir"):
-            image_folder = Path(state.book_compilation_dir)
-            output_path = image_folder / "cover_background.jpg"
-        if hasattr(state, "config") and isinstance(state.config, dict):
-            config = state.config.get("generate_background", {})
+    try:
+        if not state:
+            raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object is required for generate_background execution.")
+        
+        if not hasattr(state, "book_compilation_dir"):
+            raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object lacks 'book_compilation_dir' attribute.")
 
-    # Enforce No-Default Policy
-    brightness_thresh = config.get("brightness_threshold")
-    num_colors = config.get("num_colors_per_image")
-    width = config.get("gradient_width")
-    height = config.get("gradient_height")
-    fallback_colors = config.get("fallback_colors")
+        image_folder = Path(state.book_compilation_dir)
+        output_path = image_folder / "cover_background.jpg"
 
-    if any(v is None for v in [brightness_thresh, num_colors, width, height, fallback_colors]):
-        raise ValueError("❌ No-Default Policy Error: Required 'generate_background' config fields missing from config.json.")
+        if not hasattr(state, "config") or not isinstance(state.config, dict):
+            raise KeyError("❌ NO-DEFAULT POLICY VIOLATION: 'state.config' dictionary is missing or invalid.")
 
-    # Process images and extract colors
-    unique_colors = process_images(image_folder, num_colors, brightness_thresh)
+        config = state.config.get("generate_background")
+        if not config or not isinstance(config, dict):
+            raise KeyError("❌ NO-DEFAULT POLICY VIOLATION: 'generate_background' configuration block is missing from config.json.")
 
-    # Use config-defined fallback colors if none extracted
-    if not unique_colors:
-        print("[WARNING] No colors extracted from images. Using config fallback colors.")
-        unique_colors = fallback_colors
+        brightness_thresh = config.get("brightness_threshold")
+        num_colors = config.get("num_colors_per_image")
+        width = config.get("gradient_width")
+        height = config.get("gradient_height")
+        fallback_colors = config.get("fallback_colors")
 
-    # Generate and save background
-    background_array = create_smoother_gradient_background(unique_colors, width, height)
-    save_background(background_array, output_path)
+        missing = [k for k, v in [
+            ("brightness_threshold", brightness_thresh),
+            ("num_colors_per_image", num_colors),
+            ("gradient_width", width),
+            ("gradient_height", height),
+            ("fallback_colors", fallback_colors)
+        ] if v is None]
 
-    print(f"[INFO] Background generated successfully and saved as: {output_path}")
+        if missing:
+            raise ValueError(
+                f"❌ NO-DEFAULT POLICY VIOLATION: Required 'generate_background' config fields missing from config.json: {missing}. "
+                f"No default values allowed."
+            )
+
+        # Process images and extract colors
+        unique_colors = process_images(image_folder, num_colors, brightness_thresh)
+
+        # Use config-defined fallback colors if none extracted
+        if not unique_colors:
+            print("⚠️ No colors extracted from images. Using config fallback colors.")
+            unique_colors = fallback_colors
+
+        # Generate and save background
+        background_array = create_smoother_gradient_background(unique_colors, width, height)
+        save_background(background_array, output_path)
+
+        print(f"✅ Background generated successfully and saved as: {output_path}")
+
+    except Exception as e:
+        print(f"❌ CRITICAL PIPELINE HALT in generate_background: {e}")
+        raise RuntimeError(f"[ERROR] Error generating background: {e}")
 
 
 if __name__ == "__main__":

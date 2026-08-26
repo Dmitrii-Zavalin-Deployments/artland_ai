@@ -57,7 +57,10 @@ def run(state=None):
     ] if not v]
 
     if missing_meta:
-        raise ValueError(f"❌ No-Default Policy Error: Required magazine_cover metadata fields missing from inputs/config: {missing_meta}")
+        raise ValueError(
+            f"❌ NO-DEFAULT POLICY VIOLATION: Required magazine_cover metadata fields missing from inputs/config: {missing_meta}. "
+            f"No default values allowed."
+        )
 
     # Read template file or use fallback HTML structure
     template_path = Path("src/processor/cover_template.html")

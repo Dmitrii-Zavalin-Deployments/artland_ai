@@ -28,7 +28,9 @@ def run(state=None):
     # Ensure directories exist
     output_dir.mkdir(parents=True, exist_ok=True)
     if not input_dir.exists():
-        raise FileNotFoundError(f"❌ No-Default Policy Error: Compiling input directory does not exist: {input_dir}")
+        raise FileNotFoundError(
+            f"❌ NO-DEFAULT POLICY VIOLATION: Compiling input directory does not exist at '{input_dir}'."
+        )
 
     # Collect all image files (excluding background assets)
     image_files = [
@@ -37,7 +39,10 @@ def run(state=None):
     ]
 
     if not image_files:
-        raise FileNotFoundError(f"❌ No-Default Policy Error: No valid magazine compilation images found in '{input_dir}'.")
+        raise FileNotFoundError(
+            f"❌ NO-DEFAULT POLICY VIOLATION: No valid magazine compilation images found in '{input_dir}'. "
+            f"No default values allowed."
+        )
 
     print(f"✅ Found {len(image_files)} images to add to PDF.")
     
@@ -58,7 +63,10 @@ def run(state=None):
 
     # Handle cover background image strictly
     if not source_background.exists():
-        raise FileNotFoundError(f"❌ No-Default Policy Error: Source background image not found at '{source_background}'.")
+        raise FileNotFoundError(
+            f"❌ NO-DEFAULT POLICY VIOLATION: Source background image not found at '{source_background}'. "
+            f"No default values allowed."
+        )
 
     try:
         Image.open(source_background).convert("RGB").save(str(cover_bg_path))
