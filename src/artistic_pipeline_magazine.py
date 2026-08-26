@@ -44,8 +44,9 @@ def run(state):
             frame_path = Path(frame_path)
             working_frame_path = state.original_dir / frame_path.name
 
-            # Copy original frame into dynamic per-frame working file
-            shutil.copy(frame_path, working_frame_path)
+            # Guard against shutil.SameFileError if source and destination are identical
+            if frame_path.resolve() != working_frame_path.resolve():
+                shutil.copy(frame_path, working_frame_path)
 
             # Assign dynamic frame path to state for active processors
             state.current_frame_path = working_frame_path
@@ -68,7 +69,8 @@ def run(state):
 
             # Save processed result into magazine directory
             output_path = state.processed_dir_magazine / (frame_path.stem + ".jpg")
-            shutil.copy(working_frame_path, output_path)
+            if working_frame_path.resolve() != output_path.resolve():
+                shutil.copy(working_frame_path, output_path)
 
             state.processed_frame_paths_magazine.append(output_path)
 
@@ -76,7 +78,9 @@ def run(state):
         # Step 2 — Background generation
         # ---------------------------------------------------------
         for img_path in state.processed_frame_paths_magazine:
-            shutil.copy(img_path, state.book_compilation_dir / Path(img_path).name)
+            target_bg_path = state.book_compilation_dir / Path(img_path).name
+            if Path(img_path).resolve() != target_bg_path.resolve():
+                shutil.copy(img_path, target_bg_path)
 
         if not hasattr(generate_background, "run"):
             raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'generate_background' lacks a 'run' method.")

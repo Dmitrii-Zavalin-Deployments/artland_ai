@@ -10,7 +10,7 @@ def run(state):
     Steps:
       - Ensure working directories exist
       - For each original frame:
-          * copy to working directory (`state.original_dir / frame_path.name`)
+          * safely copy to working directory (`state.original_dir / frame_path.name`)
           * set `state.current_frame_path`
           * run artistic_painting_processor.run(state)
           * DO NOT run add_fading_edges.py
@@ -31,8 +31,9 @@ def run(state):
             frame_path = Path(frame_path)
             working_frame_path = state.original_dir / frame_path.name
 
-            # Copy original frame into dynamic per-frame working file
-            shutil.copy(frame_path, working_frame_path)
+            # Guard against shutil.SameFileError if source and destination are identical
+            if frame_path.resolve() != working_frame_path.resolve():
+                shutil.copy(frame_path, working_frame_path)
 
             # Assign dynamic frame path to state for active processors
             state.current_frame_path = working_frame_path
@@ -51,7 +52,8 @@ def run(state):
 
             # Save the verified processed result into the video directory
             output_path = state.processed_dir_video / (frame_path.stem + ".jpg")
-            shutil.copy(working_frame_path, output_path)
+            if working_frame_path.resolve() != output_path.resolve():
+                shutil.copy(working_frame_path, output_path)
 
             # Track processed file
             state.processed_frame_paths_video.append(output_path)
