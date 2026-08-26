@@ -3,8 +3,8 @@ import logging
 import sys
 import zipfile
 from pathlib import Path
+
 from PIL import Image
-import pytest
 
 from main import main
 
