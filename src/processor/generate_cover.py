@@ -37,7 +37,7 @@ def get_extreme_colors(image_path):
         )
 
         return lightest_css, darkest_css
-    except Exception as e:
+    except (OSError, ValueError, TypeError, AttributeError) as e:
         logger.warning(
             f"Could not sample image colors: {e}. Falling back to default high-contrast theme."
         )
