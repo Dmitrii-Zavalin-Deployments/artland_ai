@@ -52,7 +52,7 @@ def run(state):
         state.results["error"] = ""
         logger.info("Frames loader pipeline completed successfully.")
 
-    except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
+    except (zipfile.BadZipFile, OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError, Exception) as e:
         if not hasattr(state, "results") or state.results is None:
             state.results = {}
         state.results["status"] = "error"
