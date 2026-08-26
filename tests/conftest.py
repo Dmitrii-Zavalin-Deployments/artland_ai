@@ -1,8 +1,12 @@
 import json
 import sys
+import warnings
 from pathlib import Path
 
 import pytest
+
+# Automatically suppress scikit-image low-contrast warnings in test suite
+warnings.filterwarnings("ignore", category=UserWarning, message=".*is a low contrast image.*")
 
 # Ensure 'src' is in pythonpath for direct module imports
 src_path = Path(__file__).parent.parent / "src"
