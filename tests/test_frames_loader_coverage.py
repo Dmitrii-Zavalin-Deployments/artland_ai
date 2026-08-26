@@ -72,7 +72,7 @@ def test_frames_loader_exception_handling_block(setup_pipeline_environment, tmp_
     state.inputs = {"input_zip_path": str(zip_file)}
     state.results = None  # Force None to test line 56-57 initialization inside exception handler
 
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         frames_loader.run(state)
 
     assert state.results["status"] == "error"
