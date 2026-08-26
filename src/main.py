@@ -33,12 +33,12 @@ def load_schema(path):
 
 
 def main():
-    # Configure global logging level to INFO so logger.info messages are displayed
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        force=True
-    )
+    # Configure global logging level only if not already configured (preserving pytest stream capture)
+    if not logging.getLogger().handlers:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+        )
 
     parser = argparse.ArgumentParser(description="Artland AI Pipeline Runner")
     parser.add_argument("--input_output_folder", required=True)
