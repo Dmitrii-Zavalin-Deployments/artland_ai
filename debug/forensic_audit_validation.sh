@@ -5,7 +5,7 @@ echo "================================================================="
 echo "🔍 [FORENSIC AUDIT] Starting Pipeline Environment & Code Audit..."
 echo "================================================================="
 
-# 1. Environment & Dependency Diagnostics
+# 1. Environment & Dependency Diagnostics (Targeting scikit-learn)
 echo "--- [1/3] Environment & Package Inspection ---"
 echo "Working Directory: $(pwd)"
 echo "Python Version: $(python3 --version)"
@@ -15,21 +15,21 @@ echo "PYTHONPATH: ${PYTHONPATH:-Not Set}"
 echo "Checking installed Python packages:"
 python3 -m pip list
 
-echo "Testing OpenCV (cv2) module import directly:"
-if python3 -c "import cv2; print('✅ OpenCV version:', cv2.__version__)" 2>&1; then
-    echo "OpenCV import test passed successfully."
+echo "Testing scikit-learn (sklearn) module import directly:"
+if python3 -c "import sklearn; print('✅ scikit-learn version:', sklearn.__version__)" 2>&1; then
+    echo "scikit-learn import test passed successfully."
 else
-    echo "❌ WARNING: OpenCV import failed! Missing dependency or headless package mismatch detected."
-    echo "Attempting automated repair: Installing opencv-python-headless..."
-    python3 -m pip install --upgrade opencv-python-headless
+    echo "❌ WARNING: scikit-learn import failed! Missing dependency detected."
+    echo "Attempting automated repair: Installing scikit-learn..."
+    python3 -m pip install --upgrade scikit-learn
 fi
 
 # 2. Smoking-Gun Source Audits (cat -n)
 echo "--- [2/3] Smoking-Gun Source Audits ---"
 TARGET_FILES=(
-    "src/main.py"
-    "src/artistic_pipeline_video.py"
-    "src/processor/artistic_painting_processor.py"
+    "requirements.txt"
+    "src/processor/generate_background.py"
+    "src/artistic_pipeline_magazine.py"
 )
 
 for file in "${TARGET_FILES[@]}"; do
@@ -42,3 +42,23 @@ for file in "${TARGET_FILES[@]}"; do
         echo "❌ ERROR: Critical source file not found: $file"
     fi
 done
+
+# 3. Automated Repairs & Requirements Adjustments (sed/echo injections)
+echo "--- [3/3] Applying Automated Repairs & Safeguards ---"
+
+# Ensure scikit-learn is present in requirements.txt
+REQ_FILE="requirements.txt"
+if [ -f "$REQ_FILE" ]; then
+    echo "Checking scikit-learn presence in $REQ_FILE..."
+    if ! grep -q "scikit-learn" "$REQ_FILE"; then
+        echo "Injecting scikit-learn into $REQ_FILE..."
+        printf "\n# Machine Learning & Clustering Pipeline\nscikit-learn>=1.3.0\n" >> "$REQ_FILE"
+        echo "✅ scikit-learn added to $REQ_FILE."
+    else
+        echo "scikit-learn already listed in $REQ_FILE."
+    fi
+fi
+
+echo "================================================================="
+echo "🏁 [FORENSIC AUDIT] Diagnostic and repair sequence completed."
+echo "================================================================="

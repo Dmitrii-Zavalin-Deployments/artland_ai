@@ -48,7 +48,7 @@ jobs:
   #         python-version: "3.11"
   #         cache: 'pip'
 
-  #     - name: 📦 Provision Environment Layers & Build via Requirements
+  #     - name: 📦 Provision Environment Layers
   #       run: |
   #         python3 -m pip install --upgrade pip
   #         chmod +x requirements.sh
@@ -222,7 +222,7 @@ jobs:
           python-version: "3.11"
           cache: 'pip'
 
-      - name: 📦 Provision Environment Layers & C++ Build (Pip & CMake)
+      - name: 📦 Provision Environment Layers
         run: |
           python -m pip install --upgrade pip
           chmod +x requirements.sh
