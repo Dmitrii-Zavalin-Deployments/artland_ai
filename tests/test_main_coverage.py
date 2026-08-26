@@ -8,9 +8,9 @@ import main
 
 def test_main_schema_validation_failure(setup_pipeline_environment, tmp_path, monkeypatch):
     """Covers lines 65-78: ValidationError handling during input/config schema validation."""
-    # Write an invalid input file that violates input_schema.json
+    # Write a JSON array payload to trigger a root-level ValidationError against object schema
     input_file = tmp_path / "project" / "invalid_input.json"
-    input_file.write_text(json.dumps({"input_zip_path": "dummy.zip", "processed_photos_zip_path": "processed.zip", "magazine_assets_zip_path": "magazine.zip", "invalid_schema_field": {"nested": [1, 2, 3]}}))
+    input_file.write_text(json.dumps([1, 2, 3]), encoding="utf-8")
 
     monkeypatch.setattr(
         "sys.argv",
@@ -37,7 +37,16 @@ def test_main_schema_validation_failure(setup_pipeline_environment, tmp_path, mo
 def test_main_halt_at_frames_loader(setup_pipeline_environment, tmp_path, monkeypatch):
     """Covers lines 87-90: Pipeline halt during step 1 (frames_loader)."""
     input_file = tmp_path / "project" / "input.json"
-    input_file.write_text(json.dumps({"input_zip_path": "dummy.zip"}), encoding="utf-8")
+    input_file.write_text(
+        json.dumps(
+            {
+                "input_zip_path": "dummy.zip",
+                "processed_photos_zip_path": "processed.zip",
+                "magazine_assets_zip_path": "magazine.zip",
+            }
+        ),
+        encoding="utf-8",
+    )
 
     monkeypatch.setattr(
         "sys.argv",
@@ -53,6 +62,7 @@ def test_main_halt_at_frames_loader(setup_pipeline_environment, tmp_path, monkey
     )
 
     import frames_loader
+
     def mock_frames_loader_error(state):
         state.results = {"status": "error", "error": "Frames loader failed"}
 
@@ -70,7 +80,16 @@ def test_main_halt_at_frames_loader(setup_pipeline_environment, tmp_path, monkey
 def test_main_halt_at_artistic_pipeline_video(setup_pipeline_environment, tmp_path, monkeypatch):
     """Covers lines 95-98: Pipeline halt during step 2 (artistic_pipeline_video)."""
     input_file = tmp_path / "project" / "input.json"
-    input_file.write_text(json.dumps({"input_zip_path": "dummy.zip"}), encoding="utf-8")
+    input_file.write_text(
+        json.dumps(
+            {
+                "input_zip_path": "dummy.zip",
+                "processed_photos_zip_path": "processed.zip",
+                "magazine_assets_zip_path": "magazine.zip",
+            }
+        ),
+        encoding="utf-8",
+    )
 
     monkeypatch.setattr(
         "sys.argv",
@@ -89,8 +108,10 @@ def test_main_halt_at_artistic_pipeline_video(setup_pipeline_environment, tmp_pa
     import frames_loader
 
     monkeypatch.setattr(frames_loader, "run", lambda s: setattr(s, "results", {"status": "success"}))
+
     def mock_video_error(state):
         state.results = {"status": "error", "error": "Video pipeline failed"}
+
     monkeypatch.setattr(artistic_pipeline_video, "run", mock_video_error)
 
     main.main()
@@ -104,7 +125,16 @@ def test_main_halt_at_artistic_pipeline_video(setup_pipeline_environment, tmp_pa
 def test_main_halt_at_artistic_pipeline_magazine(setup_pipeline_environment, tmp_path, monkeypatch):
     """Covers lines 103-106: Pipeline halt during step 3 (artistic_pipeline_magazine)."""
     input_file = tmp_path / "project" / "input.json"
-    input_file.write_text(json.dumps({"input_zip_path": "dummy.zip"}), encoding="utf-8")
+    input_file.write_text(
+        json.dumps(
+            {
+                "input_zip_path": "dummy.zip",
+                "processed_photos_zip_path": "processed.zip",
+                "magazine_assets_zip_path": "magazine.zip",
+            }
+        ),
+        encoding="utf-8",
+    )
 
     monkeypatch.setattr(
         "sys.argv",
@@ -125,8 +155,10 @@ def test_main_halt_at_artistic_pipeline_magazine(setup_pipeline_environment, tmp
 
     monkeypatch.setattr(frames_loader, "run", lambda s: setattr(s, "results", {"status": "success"}))
     monkeypatch.setattr(artistic_pipeline_video, "run", lambda s: setattr(s, "results", {"status": "success"}))
+
     def mock_magazine_error(state):
         state.results = {"status": "error", "error": "Magazine pipeline failed"}
+
     monkeypatch.setattr(artistic_pipeline_magazine, "run", mock_magazine_error)
 
     main.main()
@@ -140,7 +172,16 @@ def test_main_halt_at_artistic_pipeline_magazine(setup_pipeline_environment, tmp
 def test_main_halt_at_zip_builder(setup_pipeline_environment, tmp_path, monkeypatch):
     """Covers lines 111-114: Pipeline halt during step 4 (zip_builder)."""
     input_file = tmp_path / "project" / "input.json"
-    input_file.write_text(json.dumps({"input_zip_path": "dummy.zip"}), encoding="utf-8")
+    input_file.write_text(
+        json.dumps(
+            {
+                "input_zip_path": "dummy.zip",
+                "processed_photos_zip_path": "processed.zip",
+                "magazine_assets_zip_path": "magazine.zip",
+            }
+        ),
+        encoding="utf-8",
+    )
 
     monkeypatch.setattr(
         "sys.argv",
@@ -163,8 +204,10 @@ def test_main_halt_at_zip_builder(setup_pipeline_environment, tmp_path, monkeypa
     monkeypatch.setattr(frames_loader, "run", lambda s: setattr(s, "results", {"status": "success"}))
     monkeypatch.setattr(artistic_pipeline_video, "run", lambda s: setattr(s, "results", {"status": "success"}))
     monkeypatch.setattr(artistic_pipeline_magazine, "run", lambda s: setattr(s, "results", {"status": "success"}))
+
     def mock_zip_error(state):
         state.results = {"status": "error", "error": "ZIP builder failed"}
+
     monkeypatch.setattr(zip_builder, "run", mock_zip_error)
 
     main.main()
@@ -178,7 +221,16 @@ def test_main_halt_at_zip_builder(setup_pipeline_environment, tmp_path, monkeypa
 def test_main_critical_exception_handling(setup_pipeline_environment, tmp_path, monkeypatch):
     """Covers lines 116-123: Critical exception handler and raise block in main()."""
     input_file = tmp_path / "project" / "input.json"
-    input_file.write_text(json.dumps({"input_zip_path": "dummy.zip"}), encoding="utf-8")
+    input_file.write_text(
+        json.dumps(
+            {
+                "input_zip_path": "dummy.zip",
+                "processed_photos_zip_path": "processed.zip",
+                "magazine_assets_zip_path": "magazine.zip",
+            }
+        ),
+        encoding="utf-8",
+    )
 
     monkeypatch.setattr(
         "sys.argv",
@@ -194,6 +246,7 @@ def test_main_critical_exception_handling(setup_pipeline_environment, tmp_path, 
     )
 
     import frames_loader
+
     def raise_runtime_error(state):
         raise RuntimeError("Unexpected catastrophic failure")
 
