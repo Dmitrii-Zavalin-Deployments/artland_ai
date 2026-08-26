@@ -8,7 +8,7 @@
     "magazine_cover": {
       "title": "Artistic Landscapes",
       "issue": "Issue No. 1",
-      "tagline": "AI-Generated Visual Poetry",
+      "tagline": "Generative Visual Poetry",
       "subtitle": "Exploring algorithmic synthesis and modern aesthetics",
       "author": "Dmitrii Zavalin"
     },
@@ -62,7 +62,7 @@
     }
   },
   "results": {
-    "date_time": "2026-08-26T13:02:05.823362+00:00",
+    "date_time": "2026-08-26T13:26:27.875755+00:00",
     "status": "success",
     "error": "",
     "magazine_assets_zip_path": "data/testing-input-output/magazine_assets.zip",
