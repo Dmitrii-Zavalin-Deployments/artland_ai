@@ -1,10 +1,7 @@
 # tests/test_main_coverage.py
-import io
 import json
-import zipfile
 
 import pytest
-from PIL import Image
 
 import main
 
