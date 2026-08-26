@@ -161,18 +161,3 @@ def run(state=None):
     except Exception as e:
         print(f"❌ CRITICAL PIPELINE HALT in generate_background: {e}")
         raise RuntimeError(f"[ERROR] Error generating background: {e}")
-
-
-if __name__ == "__main__":
-    test_config = {
-        "brightness_threshold": 50,
-        "num_colors_per_image": 5,
-        "gradient_width": 800,
-        "gradient_height": 1200,
-        "fallback_colors": [[255, 200, 220], [200, 220, 255], [220, 255, 200]]
-    }
-    class MockState:
-        book_compilation_dir = "book_compilation"
-        config = {"generate_background": test_config}
-
-    run(MockState())

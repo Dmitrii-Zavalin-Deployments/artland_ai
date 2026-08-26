@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from pathlib import Path
 
-def apply_proportional_whitening(input_image_path, config=None):
+def apply_proportional_whitening(input_image_path, config):
     """
     Places a painting onto a white canvas and applies gradual whitening and blurring
     to the edges with proportions retrieved strictly from config (No-Default Policy).
@@ -22,14 +22,13 @@ def apply_proportional_whitening(input_image_path, config=None):
     height, width, _ = image.shape
 
     # Enforce No-Default Policy for configuration parameters
-    cfg = config or {}
-    if not isinstance(cfg, dict):
-        cfg = {}
+    if not isinstance(config, dict):
+        raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'config' must be a valid dictionary.")
 
-    a4_width = cfg.get("canvas_width")
-    a4_height = cfg.get("canvas_height")
-    tb_divisor = cfg.get("top_bottom_divisor")
-    lr_divisor = cfg.get("left_right_divisor")
+    a4_width = config.get("canvas_width")
+    a4_height = config.get("canvas_height")
+    tb_divisor = config.get("top_bottom_divisor")
+    lr_divisor = config.get("left_right_divisor")
 
     # If missing from config, raise deterministic No-Default Policy error
     missing = [k for k, v in [
@@ -104,10 +103,10 @@ def run(state=None):
         if not state:
             raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object is required for add_fading_edges execution.")
         
-        if not hasattr(state, "original_dir"):
-            raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object lacks 'original_dir' attribute.")
+        if not hasattr(state, "current_frame_path") or not state.current_frame_path:
+            raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object lacks 'current_frame_path' attribute or it is empty.")
         
-        input_image_path = str(Path(state.original_dir) / "photo.jpg")
+        input_image_path = str(state.current_frame_path)
 
         if not hasattr(state, "config") or not isinstance(state.config, dict):
             raise KeyError("❌ NO-DEFAULT POLICY VIOLATION: 'state.config' dictionary is missing or invalid.")
@@ -121,17 +120,3 @@ def run(state=None):
     except Exception as e:
         print(f"❌ CRITICAL PIPELINE HALT in add_fading_edges: {e}")
         raise RuntimeError(f"[ERROR] Error processing fading edges: {e}")
-
-
-if __name__ == "__main__":
-    # Fallback config for standalone test execution only
-    test_config = {
-        "canvas_width": 2480,
-        "canvas_height": 3508,
-        "top_bottom_divisor": 4,
-        "left_right_divisor": 8
-    }
-    input_image_path = "converted_sketches/refined_artistic_painting.jpg"
-    print(f"[DEBUG] Starting proportional whitening and blurring process for: {input_image_path}")
-    apply_proportional_whitening(input_image_path, config=test_config)
-    print("[DEBUG] Proportional whitening and blurring process completed successfully.")

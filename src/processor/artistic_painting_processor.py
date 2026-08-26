@@ -4,7 +4,7 @@ from skimage import io
 import numpy as np
 from pathlib import Path
 
-def refined_artistic_transformation(image_path, output_path, config=None):
+def refined_artistic_transformation(image_path, output_path, config):
     """
     Transforms a photo into a vibrant, 3D-like, professional-quality artistic painting
     using parameters strictly retrieved from config (No-Default Policy).
@@ -18,23 +18,22 @@ def refined_artistic_transformation(image_path, output_path, config=None):
         )
 
     # Enforce No-Default Policy for configuration parameters
-    cfg = config or {}
-    if not isinstance(cfg, dict):
-        cfg = {}
+    if not isinstance(config, dict):
+        raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'config' must be a valid dictionary.")
 
-    bilateral_d = cfg.get("bilateral_d")
-    sigma_color = cfg.get("sigma_color")
-    sigma_space = cfg.get("sigma_space")
-    canny_t1 = cfg.get("canny_threshold1")
-    canny_t2 = cfg.get("canny_threshold2")
-    depth_alpha = cfg.get("depth_alpha")
-    depth_beta = cfg.get("depth_beta")
-    sat_mult = cfg.get("saturation_multiplier")
-    bright_mult = cfg.get("brightness_multiplier")
-    style_s = cfg.get("stylization_sigma_s")
-    style_r = cfg.get("stylization_sigma_r")
-    detail_s = cfg.get("detail_sigma_s")
-    detail_r = cfg.get("detail_sigma_r")
+    bilateral_d = config.get("bilateral_d")
+    sigma_color = config.get("sigma_color")
+    sigma_space = config.get("sigma_space")
+    canny_t1 = config.get("canny_threshold1")
+    canny_t2 = config.get("canny_threshold2")
+    depth_alpha = config.get("depth_alpha")
+    depth_beta = config.get("depth_beta")
+    sat_mult = config.get("saturation_multiplier")
+    bright_mult = config.get("brightness_multiplier")
+    style_s = config.get("stylization_sigma_s")
+    style_r = config.get("stylization_sigma_r")
+    detail_s = config.get("detail_sigma_s")
+    detail_r = config.get("detail_sigma_r")
 
     required_keys = [
         "bilateral_d", "sigma_color", "sigma_space", "canny_threshold1", 
@@ -117,10 +116,10 @@ def run(state=None):
         if not state:
             raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object is required for artistic_painting_processor execution.")
         
-        if not hasattr(state, "original_dir"):
-            raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object lacks 'original_dir' attribute.")
+        if not hasattr(state, "current_frame_path") or not state.current_frame_path:
+            raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object lacks 'current_frame_path' attribute or it is empty.")
         
-        image_path = Path(state.original_dir) / "photo.jpg"
+        image_path = Path(state.current_frame_path)
 
         if not hasattr(state, "config") or not isinstance(state.config, dict):
             raise KeyError("❌ NO-DEFAULT POLICY VIOLATION: 'state.config' dictionary is missing or invalid.")
@@ -134,27 +133,3 @@ def run(state=None):
     except Exception as e:
         print(f"❌ CRITICAL PIPELINE HALT in artistic_painting_processor: {e}")
         raise RuntimeError(f"[ERROR] Error processing the image: {e}")
-
-
-if __name__ == "__main__":
-    test_config = {
-        "bilateral_d": 9,
-        "sigma_color": 70,
-        "sigma_space": 70,
-        "canny_threshold1": 100,
-        "canny_threshold2": 200,
-        "depth_alpha": 1.3,
-        "depth_beta": 20,
-        "saturation_multiplier": 1.30,
-        "brightness_multiplier": 1.20,
-        "stylization_sigma_s": 100,
-        "stylization_sigma_r": 0.3,
-        "detail_sigma_s": 10,
-        "detail_sigma_r": 0.1
-    }
-    input_image_path = Path("original_photos/photo.jpg")
-    output_artistic_path = Path("converted_sketches/refined_artistic_painting.jpg")
-
-    print(f"[DEBUG] Starting refined artistic transformation: {input_image_path}")
-    refined_artistic_transformation(input_image_path, output_artistic_path, config=test_config)
-    print("[DEBUG] Refined artistic transformation completed successfully.")

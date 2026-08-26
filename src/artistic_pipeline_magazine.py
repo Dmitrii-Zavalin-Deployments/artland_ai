@@ -42,10 +42,13 @@ def run(state):
         # ---------------------------------------------------------
         for frame_path in state.frame_paths:
             frame_path = Path(frame_path)
-            temp_input = state.original_dir / "photo.jpg"
+            working_frame_path = state.original_dir / frame_path.name
 
-            # Copy original frame into working file
-            shutil.copy(frame_path, temp_input)
+            # Copy original frame into dynamic per-frame working file
+            shutil.copy(frame_path, working_frame_path)
+
+            # Assign dynamic frame path to state for active processors
+            state.current_frame_path = working_frame_path
 
             # Direct execution of artistic painting processor
             if not hasattr(artistic_painting_processor, "run"):
@@ -58,14 +61,14 @@ def run(state):
             add_fading_edges.run(state)
 
             # Strict check that working file exists after processing
-            if not temp_input.exists():
+            if not working_frame_path.exists():
                 raise FileNotFoundError(
-                    f"❌ NO-DEFAULT POLICY VIOLATION: Processed working file missing at '{temp_input}' after processing steps."
+                    f"❌ NO-DEFAULT POLICY VIOLATION: Processed working file missing at '{working_frame_path}' after processing steps."
                 )
 
             # Save processed result into magazine directory
             output_path = state.processed_dir_magazine / (frame_path.stem + ".jpg")
-            shutil.copy(temp_input, output_path)
+            shutil.copy(working_frame_path, output_path)
 
             state.processed_frame_paths_magazine.append(output_path)
 

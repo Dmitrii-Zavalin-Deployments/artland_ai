@@ -10,7 +10,8 @@ def run(state):
     Steps:
       - Ensure working directories exist
       - For each original frame:
-          * copy to photo.jpg
+          * copy to working directory (`state.original_dir / frame_path.name`)
+          * set `state.current_frame_path`
           * run artistic_painting_processor.run(state)
           * DO NOT run add_fading_edges.py
           * strictly verify and save output to processed_dir_video/<name>.jpg
@@ -28,11 +29,13 @@ def run(state):
 
         for frame_path in state.frame_paths:
             frame_path = Path(frame_path)
-            # Temporary working file expected by the processor
-            temp_input = state.original_dir / "photo.jpg"
+            working_frame_path = state.original_dir / frame_path.name
 
-            # Copy original frame into working file
-            shutil.copy(frame_path, temp_input)
+            # Copy original frame into dynamic per-frame working file
+            shutil.copy(frame_path, working_frame_path)
+
+            # Assign dynamic frame path to state for active processors
+            state.current_frame_path = working_frame_path
 
             # Run the artistic painting processor via direct method invocation
             if not hasattr(artistic_painting_processor, "run"):
@@ -41,14 +44,14 @@ def run(state):
             artistic_painting_processor.run(state)
 
             # Strict No-Default Check: Processor must have produced the processed working file
-            if not temp_input.exists():
+            if not working_frame_path.exists():
                 raise FileNotFoundError(
-                    f"❌ NO-DEFAULT POLICY VIOLATION: Artistic painting processor failed to generate output at '{temp_input}'."
+                    f"❌ NO-DEFAULT POLICY VIOLATION: Artistic painting processor failed to generate output at '{working_frame_path}'."
                 )
 
             # Save the verified processed result into the video directory
             output_path = state.processed_dir_video / (frame_path.stem + ".jpg")
-            shutil.copy(temp_input, output_path)
+            shutil.copy(working_frame_path, output_path)
 
             # Track processed file
             state.processed_frame_paths_video.append(output_path)

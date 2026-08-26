@@ -86,13 +86,3 @@ def run(state=None):
     except Exception as e:
         print(f"❌ CRITICAL PIPELINE HALT in expand_image: {e}")
         raise RuntimeError(f"[ERROR] Error expanding image: {e}")
-
-
-if __name__ == "__main__":
-    test_config = {
-        "scale_factor_y": 10,
-        "num_repeats_x": 10
-    }
-    image_path = Path("book_compilation/background.jpg")
-    expand_background_image(image_path, test_config["scale_factor_y"], test_config["num_repeats_x"])
-    print("Image successfully expanded and replaced in book_compilation!")
