@@ -1,6 +1,12 @@
 # Contract Enforcement
 jsonschema>=4.23.0
 
+# Scientific & Image Processing Pipeline
+opencv-python-headless>=4.9.0
+scikit-image>=0.22.0
+numpy>=1.26.0
+Pillow>=10.0.0
+
 # Testing & Quality
 pytest>=8.3.0
 pytest-mock>=3.14.0
