@@ -21,7 +21,7 @@ def run(state=None):
         if hasattr(state, "book_to_publish_dir") and state.book_to_publish_dir:
             output_dir = Path(state.book_to_publish_dir)
 
-    source_background = input_dir / "background.jpg"
+    source_background = input_dir / "cover_background.jpg"
     magazine_pdf_path = output_dir / "magazine_content.pdf"
     cover_bg_path = output_dir / "cover_background.jpg"
 
@@ -64,8 +64,8 @@ def run(state=None):
     # Handle cover background image strictly
     if not source_background.exists():
         raise FileNotFoundError(
-            f"❌ NO-DEFAULT POLICY VIOLATION: Source background image not found at '{source_background}'. "
-            f"No default values allowed."
+            f"❌ NO-DEFAULT POLICY VIOLATION: Source background image not found at '{input_dir / 'cover_background.jpg'}' "
+            f"or '{input_dir / 'background.jpg'}'. No default values allowed."
         )
 
     try:
