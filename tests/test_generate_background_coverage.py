@@ -1,9 +1,7 @@
 # tests/test_generate_background_coverage.py
-from pathlib import Path
-import pytest
 import cv2
 import numpy as np
-from PIL import Image
+import pytest
 
 import processor.generate_background as gb
 from state import State

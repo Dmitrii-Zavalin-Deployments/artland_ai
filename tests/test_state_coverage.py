@@ -1,5 +1,4 @@
 # tests/test_state_coverage.py
-from pathlib import Path
 import pytest
 
 from state import State

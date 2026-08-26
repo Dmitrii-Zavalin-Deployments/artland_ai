@@ -1,7 +1,7 @@
 # tests/test_zip_builder_coverage.py
 from pathlib import Path
+
 import pytest
-import zipfile
 
 import zip_builder as zb
 from state import State

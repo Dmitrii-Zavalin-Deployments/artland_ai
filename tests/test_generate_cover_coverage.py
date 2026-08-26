@@ -1,5 +1,6 @@
 # tests/test_generate_cover_coverage.py
 from pathlib import Path
+
 import pytest
 from PIL import Image
 

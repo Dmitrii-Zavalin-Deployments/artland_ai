@@ -1,5 +1,6 @@
 # tests/test_generate_photo_pdf_coverage.py
 from pathlib import Path
+
 import pytest
 from PIL import Image
 
@@ -84,7 +85,6 @@ def _mock_empty_image():
             return self
     # To test line 69 specifically, if image_list is empty:
     # Let's mock a scenario where image_list is empty after loop or before save.
-    pass
 
 
 def test_run_pdf_generation_exception(tmp_path, monkeypatch):
