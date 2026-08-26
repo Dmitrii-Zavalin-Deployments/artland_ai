@@ -17,7 +17,10 @@ def get_extreme_colors(image_path):
         img = Image.open(image_path).convert("RGB")
         # Resize to a small thumbnail for instant pixel sampling
         img_thumbnail = img.resize((150, 150))
-        pixels = list(img_thumbnail.getdata())
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning, message=".*getdata.*")
+            pixels = list(img_thumbnail.getdata())
 
         if not pixels:
             return "rgb(255, 255, 255)", "rgb(0, 0, 0)"
