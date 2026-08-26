@@ -1,6 +1,9 @@
 # src/processor/generate_cover.py
 import json
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def run(state=None):
@@ -8,6 +11,7 @@ def run(state=None):
     Generates magazine_cover.html from the cover template, substituting metadata fields
     strictly from pipeline state or config (No-Default Policy enforcement).
     """
+    logger.info("Starting generate_cover execution.")
     output_dir = Path("data/testing-input-output/book_to_publish")
     if state and hasattr(state, "book_to_publish_dir"):
         output_dir = Path(state.book_to_publish_dir)
@@ -65,8 +69,10 @@ def run(state=None):
     # Read template file or use fallback HTML structure
     template_path = Path("src/processor/cover_template.html")
     if template_path.exists():
+        logger.debug("Reading cover template from: %s", template_path)
         html_content = template_path.read_text(encoding="utf-8")
     else:
+        logger.warning("⚠️ Template file not found at %s. Using default fallback HTML structure.", template_path)
         html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -116,7 +122,7 @@ def run(state=None):
                                 .replace("{AUTHOR}", str(author))
 
     cover_html_path.write_text(rendered_html, encoding="utf-8")
-    print(f"✅ Magazine cover HTML generated: {cover_html_path}")
+    logger.info("✅ Magazine cover HTML generated: %s", cover_html_path)
 
     if state:
         if not hasattr(state, "results") or state.results is None:

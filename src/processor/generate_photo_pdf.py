@@ -1,10 +1,13 @@
 # src/processor/generate_photo_pdf.py
 import json
+import logging
 import os
 import zipfile
 from pathlib import Path
 
 from PIL import Image
+
+logger = logging.getLogger(__name__)
 
 
 def run(state=None):
@@ -13,6 +16,7 @@ def run(state=None):
     and strictly packages ONLY these two files into magazine_assets.zip, enforcing 
     the No-Default Policy (no silent dummy file creation).
     """
+    logger.info("Starting generate_photo_pdf execution.")
     # Determine directories from pipeline state or production paths
     input_dir = Path("data/testing-input-output/book_compilation")
     output_dir = Path("data/testing-input-output/book_to_publish")
@@ -24,6 +28,11 @@ def run(state=None):
             output_dir = Path(state.book_to_publish_dir)
 
     source_background = input_dir / "cover_background.jpg"
+    alt_background = input_dir / "background.jpg"
+    
+    if not source_background.exists() and alt_background.exists():
+        source_background = alt_background
+
     magazine_pdf_path = output_dir / "magazine_content.pdf"
     cover_bg_path = output_dir / "cover_background.jpg"
 
@@ -46,12 +55,13 @@ def run(state=None):
             f"No default values allowed."
         )
 
-    print(f"✅ Found {len(image_files)} images to add to PDF.")
+    logger.info("✅ Found %d images to add to PDF.", len(image_files))
     
     # Convert images to magazine content PDF
     image_list = []
     try:
         for img in sorted(image_files):
+            logger.debug("Loading image for PDF compilation: %s", img)
             im = Image.open(img).convert("RGB")
             image_list.append(im)
 
@@ -59,8 +69,9 @@ def run(state=None):
             raise ValueError("No valid image objects could be loaded for PDF generation.")
 
         image_list[0].save(str(magazine_pdf_path), save_all=True, append_images=image_list[1:])
-        print(f"✅ Magazine content PDF created: {magazine_pdf_path}")
+        logger.info("✅ Magazine content PDF created: %s", magazine_pdf_path)
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
+        logger.exception("❌ Error generating magazine PDF file: %s", e)
         raise RuntimeError(f"❌ Error generating magazine PDF file: {e}")
 
     # Handle cover background image strictly
@@ -72,8 +83,9 @@ def run(state=None):
 
     try:
         Image.open(source_background).convert("RGB").save(str(cover_bg_path))
-        print(f"✅ Cover background prepared: {cover_bg_path}")
+        logger.info("✅ Cover background prepared: %s", cover_bg_path)
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
+        logger.exception("❌ Error processing cover background: %s", e)
         raise RuntimeError(f"❌ Error processing cover background: {e}")
 
     # Determine magazine_assets.zip path from state config or default path
@@ -89,13 +101,13 @@ def run(state=None):
     with zipfile.ZipFile(magazine_zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         if magazine_pdf_path.exists():
             zipf.write(magazine_pdf_path, "magazine_content.pdf")
-            print("➕ Added to archive root: magazine_content.pdf")
+            logger.debug("➕ Added to archive root: magazine_content.pdf")
         if cover_bg_path.exists():
             zipf.write(cover_bg_path, "cover_background.jpg")
-            print("➕ Added to archive root: cover_background.jpg")
+            logger.debug("➕ Added to archive root: cover_background.jpg")
 
-    print(f"✅ Successfully packaged magazine assets into {magazine_zip_path}")
-    print("    Contents verified: ONLY [magazine_content.pdf, cover_background.jpg]")
+    logger.info("✅ Successfully packaged magazine assets into %s", magazine_zip_path)
+    logger.info("    Contents verified: ONLY [magazine_content.pdf, cover_background.jpg]")
 
     if state:
         if not hasattr(state, "results") or state.results is None:
@@ -123,5 +135,5 @@ def main():
     run(state)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
