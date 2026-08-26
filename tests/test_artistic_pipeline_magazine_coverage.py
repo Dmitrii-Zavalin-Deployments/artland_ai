@@ -54,6 +54,10 @@ def test_missing_processor_run_methods(setup_pipeline_environment, tmp_path, mon
     state = State({}, {}, tmp_path)
     state.frame_paths = [external_frame]
 
+    try:
+        delattr(app, 'run')
+    except AttributeError:
+        pass
     # 1. artistic_painting_processor lacks run
     import processor.artistic_painting_processor as app
     monkeypatch.delattr(app, "run", raising=False)
