@@ -85,6 +85,6 @@ def run(state=None):
 
         expand_background_image(image_path, scale_factor_y, num_repeats_x)
 
-    except Exception as e:
+    except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
         print(f"❌ CRITICAL PIPELINE HALT in expand_image: {e}")
         raise RuntimeError(f"[ERROR] Error expanding image: {e}")

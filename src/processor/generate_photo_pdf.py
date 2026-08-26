@@ -60,7 +60,7 @@ def run(state=None):
 
         image_list[0].save(str(magazine_pdf_path), save_all=True, append_images=image_list[1:])
         print(f"✅ Magazine content PDF created: {magazine_pdf_path}")
-    except Exception as e:
+    except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
         raise RuntimeError(f"❌ Error generating magazine PDF file: {e}")
 
     # Handle cover background image strictly
@@ -73,7 +73,7 @@ def run(state=None):
     try:
         Image.open(source_background).convert("RGB").save(str(cover_bg_path))
         print(f"✅ Cover background prepared: {cover_bg_path}")
-    except Exception as e:
+    except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
         raise RuntimeError(f"❌ Error processing cover background: {e}")
 
     # Determine magazine_assets.zip path from state config or default path

@@ -160,6 +160,6 @@ def run(state=None):
 
         print(f"✅ Background generated successfully and saved as: {output_path}")
 
-    except Exception as e:
+    except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
         print(f"❌ CRITICAL PIPELINE HALT in generate_background: {e}")
         raise RuntimeError(f"[ERROR] Error generating background: {e}")

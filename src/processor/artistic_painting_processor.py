@@ -21,7 +21,7 @@ def refined_artistic_transformation(image_path, output_path, config):
 
     # Enforce No-Default Policy for configuration parameters
     if not isinstance(config, dict):
-        raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'config' must be a valid dictionary.")
+        raise TypeError("❌ NO-DEFAULT POLICY VIOLATION: 'config' must be a valid dictionary.")
 
     bilateral_d = config.get("bilateral_d")
     sigma_color = config.get("sigma_color")
@@ -132,6 +132,6 @@ def run(state=None):
 
         refined_artistic_transformation(image_path, image_path, config=config)
 
-    except Exception as e:
+    except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
         print(f"❌ CRITICAL PIPELINE HALT in artistic_painting_processor: {e}")
         raise RuntimeError(f"[ERROR] Error processing the image: {e}")

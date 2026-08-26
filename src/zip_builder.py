@@ -107,7 +107,7 @@ def run(state):
         state.results["status"] = "success"
         state.results["error"] = ""
 
-    except Exception as e:
+    except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
         if not hasattr(state, "results") or state.results is None:
             state.results = {}
         state.results["status"] = "error"

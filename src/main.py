@@ -95,7 +95,7 @@ def main():
             print(f"❌ Pipeline halted at zip_builder: {state.results.get('error')}")
             return
 
-    except Exception as e:
+    except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
         state.results["status"] = "error"
         state.results["error"] = str(e)
         state.write_output_json(output_json_path)

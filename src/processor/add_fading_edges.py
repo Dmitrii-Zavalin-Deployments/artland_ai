@@ -25,7 +25,7 @@ def apply_proportional_whitening(input_image_path, config):
 
     # Enforce No-Default Policy for configuration parameters
     if not isinstance(config, dict):
-        raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'config' must be a valid dictionary.")
+        raise TypeError("❌ NO-DEFAULT POLICY VIOLATION: 'config' must be a valid dictionary.")
 
     a4_width = config.get("canvas_width")
     a4_height = config.get("canvas_height")
@@ -119,6 +119,6 @@ def run(state=None):
 
         apply_proportional_whitening(input_image_path, config=config)
 
-    except Exception as e:
+    except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
         print(f"❌ CRITICAL PIPELINE HALT in add_fading_edges: {e}")
         raise RuntimeError(f"[ERROR] Error processing fading edges: {e}")
