@@ -1,4 +1,8 @@
 # src/main.py
+# Automated forensic patch: Suppress scikit-image low-contrast user warnings in test suites
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="skimage.*")
+
 import argparse
 import json
 from pathlib import Path
