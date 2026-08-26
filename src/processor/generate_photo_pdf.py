@@ -1,9 +1,11 @@
 # src/processor/generate_photo_pdf.py
-import os
 import json
+import os
 import zipfile
 from pathlib import Path
+
 from PIL import Image
+
 
 def run(state=None):
     """

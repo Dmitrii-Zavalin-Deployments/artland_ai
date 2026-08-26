@@ -1,6 +1,8 @@
 # src/processor/expand_image.py
-from PIL import Image
 from pathlib import Path
+
+from PIL import Image
+
 
 def expand_background_image(image_path, scale_factor_y, num_repeats_x):
     """

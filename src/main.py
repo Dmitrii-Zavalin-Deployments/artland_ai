@@ -1,18 +1,20 @@
 # src/main.py
 # Automated forensic patch: Suppress scikit-image low-contrast user warnings in test suites
 import warnings
+
 warnings.filterwarnings("ignore", category=UserWarning, module="skimage.*")
 
 import argparse
 import json
 from pathlib import Path
-from jsonschema import validate, ValidationError
 
-from state import State
-import frames_loader
-import artistic_pipeline_video
+from jsonschema import ValidationError, validate
+
 import artistic_pipeline_magazine
+import artistic_pipeline_video
+import frames_loader
 import zip_builder
+from state import State
 
 
 def load_json(path):

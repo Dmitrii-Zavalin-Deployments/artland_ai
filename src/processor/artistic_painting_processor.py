@@ -1,8 +1,10 @@
 # src/processor/artistic_painting_processor.py
-import cv2
-from skimage import io
-import numpy as np
 from pathlib import Path
+
+import cv2
+import numpy as np
+from skimage import io
+
 
 def refined_artistic_transformation(image_path, output_path, config):
     """

@@ -3,12 +3,12 @@ import shutil
 from pathlib import Path
 
 from processor import (
-    artistic_painting_processor,
     add_fading_edges,
-    generate_background,
+    artistic_painting_processor,
     expand_image,
-    generate_photo_pdf,
+    generate_background,
     generate_cover,
+    generate_photo_pdf,
 )
 
 

@@ -1,10 +1,12 @@
 # src/processor/generate_background.py
-import cv2
-import numpy as np
 import random
 from pathlib import Path
-from sklearn.cluster import KMeans
+
+import cv2
+import numpy as np
 from PIL import Image
+from sklearn.cluster import KMeans
+
 
 def extract_colors_from_image(image_path, num_colors, brightness_threshold):
     """Extracts dominant colors from a single image using config parameters."""

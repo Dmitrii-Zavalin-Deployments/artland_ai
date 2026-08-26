@@ -1,6 +1,7 @@
 # src/artistic_pipeline_video.py
 import shutil
 from pathlib import Path
+
 from processor import artistic_painting_processor
 
 

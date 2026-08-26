@@ -2,6 +2,7 @@
 import zipfile
 from pathlib import Path
 
+
 def run(state):
     """
     Unzip the input archive and collect all .jpg/.png files

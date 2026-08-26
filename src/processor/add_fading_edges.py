@@ -1,7 +1,9 @@
 # src/processor/add_fading_edges.py
+from pathlib import Path
+
 import cv2
 import numpy as np
-from pathlib import Path
+
 
 def apply_proportional_whitening(input_image_path, config):
     """

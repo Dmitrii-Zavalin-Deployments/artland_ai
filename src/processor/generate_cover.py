@@ -1,7 +1,7 @@
 # src/processor/generate_cover.py
-import os
 import json
 from pathlib import Path
+
 
 def run(state=None):
     """
