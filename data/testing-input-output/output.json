@@ -62,6 +62,7 @@
     }
   },
   "results": {
+    "date_time": "2026-08-26T00:14:04.342743+00:00",
     "status": "success",
     "error": "",
     "processed_photos_zip_path": "data/testing-input-output/processed_photos.zip",
