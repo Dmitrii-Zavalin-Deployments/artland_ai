@@ -27,6 +27,9 @@ class State:
         self.frame_paths = []
         self.processed_frame_paths_video = []
         self.processed_frame_paths_magazine = []
+        
+        # Dynamic per-frame path tracker for active processors
+        self.current_frame_path = None
 
     def write_output_json(self, output_json_path):
         # Ensure date_time is present and up to date when writing output
