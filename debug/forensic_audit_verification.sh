@@ -2,63 +2,46 @@
 set -euo pipefail
 
 echo "=========================================================="
-echo "🔍 STARTING FORENSIC AUDIT & REPAIR (RUFF & SYNTAX FIXES)"
+echo "🔍 STARTING FORENSIC AUDIT & REPAIR FOR IMAGE BACKEND ERROR"
 echo "=========================================================="
 
 # ------------------------------------------------------------------
-# 1. Diagnostics & Smoking-Gun Audits (cat -n / grep)
+# 1. Diagnostics & Smoking-Gun Audits
 # ------------------------------------------------------------------
-echo "--- [1/3] Running diagnostics on failing test modules ---"
-
-if [ -f "tests/test_artistic_pipeline_magazine_coverage.py" ]; then
-    echo "=== Auditing tests/test_artistic_pipeline_magazine_coverage.py (around line 58) ==="
-    cat -n tests/test_artistic_pipeline_magazine_coverage.py | sed -n '45,65p'
-fi
-
-if [ -f "tests/test_frames_loader_coverage.py" ]; then
-    echo "=== Auditing tests/test_frames_loader_coverage.py (indentation blocks) ==="
-    cat -n tests/test_frames_loader_coverage.py | sed -n '25,35p;40,50p;75,85p'
+echo "--- [1/3] Running diagnostics on test_main_schema_validation_failure ---"
+if [ -f "tests/test_main_coverage.py" ]; then
+    echo "=== Auditing test_main_schema_validation_failure in tests/test_main_coverage.py ==="
+    grep -n -C 12 "test_main_schema_validation_failure" tests/test_main_coverage.py || true
 fi
 
 # ------------------------------------------------------------------
-# 2. Automated Surgical Repairs via Python
+# 2. Automated Surgical Repair via Python
 # ------------------------------------------------------------------
-echo "--- [2/3] Applying automated surgical repairs ---"
+echo "--- [2/3] Applying surgical fix to generate valid JPEG images using Pillow ---"
 
 python3 - << 'EOF'
 from pathlib import Path
 
-# ------------------------------------------------------------------
-# Fix 1: Resolve Undefined name 'app' in tests/test_artistic_pipeline_magazine_coverage.py
-# ------------------------------------------------------------------
-art_test_path = Path("tests/test_artistic_pipeline_magazine_coverage.py")
-if art_test_path.exists():
-    code = art_test_path.read_text(encoding="utf-8")
-    if "delattr(app, 'run')" in code and "import processor.artistic_painting_processor as app" not in code:
-        # Insert local import of app inside the test function where delattr is used
+path = Path("tests/test_main_coverage.py")
+if path.exists():
+    code = path.read_text(encoding="utf-8")
+    
+    # Ensure Pillow is imported
+    if "from PIL import Image" not in code:
+        code = "from PIL import Image\n" + code
+        
+    # Replace dummy frame writes with valid Pillow JPEG creation
+    if 'write_text("dummy data"' in code:
         code = code.replace(
-            "def test_missing_processor_run_methods(",
-            "def test_missing_processor_run_methods(\n    import processor.artistic_painting_processor as app\n"
+            'write_text("dummy data"', 
+            'parent.mkdir(parents=True, exist_ok=True); Image.new("RGB", (10, 10), color="red").save('
         )
-        art_test_path.write_text(code, encoding="utf-8")
-        print("✅ Added local import of app in test_missing_processor_run_methods")
-
-# ------------------------------------------------------------------
-# Fix 2: Fix indentation syntax errors after 'with' statement in tests/test_frames_loader_coverage.py
-# ------------------------------------------------------------------
-frames_test_path = Path("tests/test_frames_loader_coverage.py")
-if frames_test_path.exists():
-    code = frames_test_path.read_text(encoding="utf-8")
-    # Correct unindented statements following BadZipFile context manager
-    code = code.replace(
-        "with pytest.raises(zipfile.BadZipFile):\n        frames_loader.run(state)",
-        "with pytest.raises(zipfile.BadZipFile):\n            frames_loader.run(state)"
-    )
-    code = code.replace(
-        "with pytest.raises(zipfile.BadZipFile):\n    frames_loader.run(state)",
-        "with pytest.raises(zipfile.BadZipFile):\n            frames_loader.run(state)"
-    )
-    frames_test_path.write_text(code, encoding="utf-8")
-    print("✅ Fixed indentation syntax errors in test_frames_loader_coverage.py")
-
+    elif 'write_bytes(b"dummy data"' in code:
+        code = code.replace(
+            'write_bytes(b"dummy data"', 
+            'parent.mkdir(parents=True, exist_ok=True); Image.new("RGB", (10, 10), color="red").save('
+        )
+        
+    path.write_text(code, encoding="utf-8")
+    print("✅ Patched test_main_coverage.py to write valid Pillow-generated JPEGs")
 EOF
