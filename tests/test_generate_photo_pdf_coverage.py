@@ -198,13 +198,13 @@ def test_run_state_results_is_none(tmp_path):
 def test_production_runtime_state_with_and_without_config(monkeypatch):
     """Covers lines 122-130: ProductionRuntimeState initialization with and without config.json."""
     # Test when config.json exists
-    monkeypatch.setattr(Path, "exists", lambda self: True if "config.json" in str(self) else True)
+    monkeypatch.setattr(Path, "exists", lambda self: True)
     monkeypatch.setattr("json.load", lambda f: {"test": "config"})
     runtime_state_exists = gpp.ProductionRuntimeState()
     assert runtime_state_exists.config == {"test": "config"}
 
     # Test when config.json does not exist
-    monkeypatch.setattr(Path, "exists", lambda self: False if "config.json" in str(self) else True)
+    monkeypatch.setattr(Path, "exists", lambda self: "config.json" not in str(self))
     runtime_state_missing = gpp.ProductionRuntimeState()
     assert runtime_state_missing.config == {}
 

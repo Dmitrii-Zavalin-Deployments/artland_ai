@@ -97,7 +97,7 @@ def test_main_config_exists(tmp_path, monkeypatch):
 
 def test_main_config_not_found(monkeypatch):
     """Covers lines 239-240: FileNotFoundError in main() when config.json does not exist."""
-    monkeypatch.setattr(Path, "exists", lambda self: False if "config.json" in str(self) else True)
+    monkeypatch.setattr(Path, "exists", lambda self: "config.json" not in str(self))
     
     with pytest.raises(FileNotFoundError, match="Production config not found"):
         gc.main()
