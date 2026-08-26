@@ -27,8 +27,7 @@ def test_frames_loader_file_not_found(setup_pipeline_environment, tmp_path):
     state.inputs = {"input_zip_path": str(tmp_path / "non_existent_archive.zip")}
 
     with pytest.raises(FileNotFoundError, match="Input ZIP file not found at"):
-        with pytest.raises(zipfile.BadZipFile):
-            frames_loader.run(state)
+        frames_loader.run(state)
 
 
 def test_frames_loader_no_valid_frames_raises_value_error(setup_pipeline_environment, tmp_path):
@@ -42,8 +41,7 @@ def test_frames_loader_no_valid_frames_raises_value_error(setup_pipeline_environ
     state.inputs = {"input_zip_path": str(zip_file)}
 
     with pytest.raises(ValueError, match="NO-DEFAULT POLICY VIOLATION: No valid JPG/PNG frames found"):
-        with pytest.raises(zipfile.BadZipFile):
-            frames_loader.run(state)
+        frames_loader.run(state)
 
 
 def test_frames_loader_successful_extraction_and_results_init(setup_pipeline_environment, tmp_path):
@@ -58,8 +56,7 @@ def test_frames_loader_successful_extraction_and_results_init(setup_pipeline_env
     state.inputs = {"input_zip_path": str(zip_file)}
     state.results = None  # Force None to test line 50 initialization branch
 
-    with pytest.raises(zipfile.BadZipFile):
-        frames_loader.run(state)
+    frames_loader.run(state)
 
     assert state.results["status"] == "success"
     assert state.results["error"] == ""
@@ -75,7 +72,7 @@ def test_frames_loader_exception_handling_block(setup_pipeline_environment, tmp_
     state.inputs = {"input_zip_path": str(zip_file)}
     state.results = None  # Force None to test line 56-57 initialization inside exception handler
 
-    with pytest.raises(RuntimeError), pytest.raises(zipfile.BadZipFile):
+    with pytest.raises(RuntimeError):
         frames_loader.run(state)
 
     assert state.results["status"] == "error"
