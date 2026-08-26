@@ -197,7 +197,7 @@ def run(state=None):
 </head>
 <body>
     <div class="container">
-        <div class="author">By {author}</div>
+        <div class="author">{author}</div>
         <div class="center-content">
             <div class="tagline">{tagline}</div>
             <div class="title">{title}</div>
