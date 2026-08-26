@@ -3,8 +3,8 @@ import io
 import json
 import zipfile
 
-from PIL import Image
 import pytest
+from PIL import Image
 
 import main
 
