@@ -6,6 +6,7 @@ def run(state):
     """
     Unzip the input archive and collect all .jpg/.png files
     into state.frame_paths (supporting nested directories).
+    Enforces No-Default Policy: Fails immediately if input ZIP is missing or empty.
     """
     try:
         # Check if input_zip_path is specified in state inputs
@@ -29,17 +30,20 @@ def run(state):
             if frame.is_file() and frame.suffix.lower() in [".jpg", ".jpeg", ".png"]:
                 state.frame_paths.append(frame)
 
-        # Error if no images found
+        # Strict No-Default Check: Raise loud error if no images found
         if not state.frame_paths:
-            state.results["status"] = "error"
-            state.results["error"] = "No JPG/PNG frames found in input ZIP."
-        else:
-            state.results["status"] = "success"
-            state.results["error"] = ""
+            raise ValueError(
+                f"❌ NO-DEFAULT POLICY VIOLATION: No valid JPG/PNG frames found in input ZIP '{zip_path}'. "
+                f"Extraction directory '{state.original_dir}' contains no supported image assets."
+            )
+
+        state.results["status"] = "success"
+        state.results["error"] = ""
 
     except Exception as e:
         if not hasattr(state, "results") or state.results is None:
             state.results = {}
         state.results["status"] = "error"
         state.results["error"] = str(e)
+        print(f"❌ CRITICAL PIPELINE HALT in frames_loader: {e}")
         raise

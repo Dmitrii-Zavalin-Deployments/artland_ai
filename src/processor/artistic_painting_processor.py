@@ -2,7 +2,6 @@
 import cv2
 from skimage import io
 import numpy as np
-import os
 from pathlib import Path
 
 def refined_artistic_transformation(image_path, output_path, config=None):
@@ -10,117 +9,131 @@ def refined_artistic_transformation(image_path, output_path, config=None):
     Transforms a photo into a vibrant, 3D-like, professional-quality artistic painting
     using parameters strictly retrieved from config (No-Default Policy).
     """
-    try:
-        if not os.path.exists(image_path):
-            print(f"[ERROR] File not found: '{image_path}'")
-            return
+    image_path = Path(image_path)
+    output_path = Path(output_path)
 
-        # Enforce No-Default Policy for configuration parameters
-        cfg = config or {}
-        if not isinstance(cfg, dict):
-            cfg = {}
+    if not image_path.exists():
+        raise FileNotFoundError(
+            f"❌ NO-DEFAULT POLICY VIOLATION: Input image for artistic transformation not found at '{image_path}'."
+        )
 
-        bilateral_d = cfg.get("bilateral_d")
-        sigma_color = cfg.get("sigma_color")
-        sigma_space = cfg.get("sigma_space")
-        canny_t1 = cfg.get("canny_threshold1")
-        canny_t2 = cfg.get("canny_threshold2")
-        depth_alpha = cfg.get("depth_alpha")
-        depth_beta = cfg.get("depth_beta")
-        sat_mult = cfg.get("saturation_multiplier")
-        bright_mult = cfg.get("brightness_multiplier")
-        style_s = cfg.get("stylization_sigma_s")
-        style_r = cfg.get("stylization_sigma_r")
-        detail_s = cfg.get("detail_sigma_s")
-        detail_r = cfg.get("detail_sigma_r")
+    # Enforce No-Default Policy for configuration parameters
+    cfg = config or {}
+    if not isinstance(cfg, dict):
+        cfg = {}
 
-        required_keys = [
-            "bilateral_d", "sigma_color", "sigma_space", "canny_threshold1", 
-            "canny_threshold2", "depth_alpha", "depth_beta", "saturation_multiplier", 
-            "brightness_multiplier", "stylization_sigma_s", "stylization_sigma_r", 
-            "detail_sigma_s", "detail_sigma_r"
-        ]
-        
-        missing = [k for k, v in zip(required_keys, [
-            bilateral_d, sigma_color, sigma_space, canny_t1, canny_t2, 
-            depth_alpha, depth_beta, sat_mult, bright_mult, style_s, 
-            style_r, detail_s, detail_r
-        ]) if v is None]
+    bilateral_d = cfg.get("bilateral_d")
+    sigma_color = cfg.get("sigma_color")
+    sigma_space = cfg.get("sigma_space")
+    canny_t1 = cfg.get("canny_threshold1")
+    canny_t2 = cfg.get("canny_threshold2")
+    depth_alpha = cfg.get("depth_alpha")
+    depth_beta = cfg.get("depth_beta")
+    sat_mult = cfg.get("saturation_multiplier")
+    bright_mult = cfg.get("brightness_multiplier")
+    style_s = cfg.get("stylization_sigma_s")
+    style_r = cfg.get("stylization_sigma_r")
+    detail_s = cfg.get("detail_sigma_s")
+    detail_r = cfg.get("detail_sigma_r")
 
-        if missing:
-            raise ValueError(f"❌ No-Default Policy Error: Required artistic_painting config fields missing from config.json: {missing}")
+    required_keys = [
+        "bilateral_d", "sigma_color", "sigma_space", "canny_threshold1", 
+        "canny_threshold2", "depth_alpha", "depth_beta", "saturation_multiplier", 
+        "brightness_multiplier", "stylization_sigma_s", "stylization_sigma_r", 
+        "detail_sigma_s", "detail_sigma_r"
+    ]
+    
+    missing = [k for k, v in zip(required_keys, [
+        bilateral_d, sigma_color, sigma_space, canny_t1, canny_t2, 
+        depth_alpha, depth_beta, sat_mult, bright_mult, style_s, 
+        style_r, detail_s, detail_r
+    ]) if v is None]
 
-        # Load the original photo
-        image = io.imread(image_path)
-        print("[DEBUG] Image loaded successfully for artistic transformation.")
+    if missing:
+        raise ValueError(
+            f"❌ NO-DEFAULT POLICY VIOLATION: Required 'artistic_painting' config fields missing from config.json: {missing}. "
+            f"No default values allowed."
+        )
 
-        # Convert to OpenCV format (BGR)
-        image_cv = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    # Load the original photo
+    image = io.imread(str(image_path))
+    print("✅ Image loaded successfully for artistic transformation.")
 
-        # 1. Gradient Preprocessing with Balanced Smoothing
-        print("[DEBUG] Preprocessing gradients to maintain tonal consistency...")
-        preprocessed_image = cv2.bilateralFilter(image_cv, d=int(bilateral_d), sigmaColor=float(sigma_color), sigmaSpace=float(sigma_space))
+    # Convert to OpenCV format (BGR)
+    image_cv = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-        # 2. Edge Preservation for Medium-Sized Objects
-        print("[DEBUG] Refining edges to retain medium-sized elements...")
-        edges = cv2.Canny(preprocessed_image, threshold1=int(canny_t1), threshold2=int(canny_t2))
-        edges_dilated = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
-        edge_preserved_image = cv2.addWeighted(preprocessed_image, 1, cv2.cvtColor(edges_dilated, cv2.COLOR_GRAY2BGR), 0.3, 0)
+    # 1. Gradient Preprocessing with Balanced Smoothing
+    print("⏳ Preprocessing gradients to maintain tonal consistency...")
+    preprocessed_image = cv2.bilateralFilter(image_cv, d=int(bilateral_d), sigmaColor=float(sigma_color), sigmaSpace=float(sigma_space))
 
-        # 3. Dynamic Depth Enhancement for 3D Effect
-        print("[DEBUG] Enhancing shadows and highlights for dimensionality...")
-        depth_enhanced_image = cv2.convertScaleAbs(edge_preserved_image, alpha=float(depth_alpha), beta=float(depth_beta))
+    # 2. Edge Preservation for Medium-Sized Objects
+    print("⏳ Refining edges to retain medium-sized elements...")
+    edges = cv2.Canny(preprocessed_image, threshold1=int(canny_t1), threshold2=int(canny_t2))
+    edges_dilated = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
+    edge_preserved_image = cv2.addWeighted(preprocessed_image, 1, cv2.cvtColor(edges_dilated, cv2.COLOR_GRAY2BGR), 0.3, 0)
 
-        # 4. Adaptive Color Boost
-        print("[DEBUG] Amplifying color vibrancy and contrast...")
-        hsv_image = cv2.cvtColor(depth_enhanced_image, cv2.COLOR_BGR2HSV)
-        hsv_image[:, :, 1] = cv2.multiply(hsv_image[:, :, 1], float(sat_mult))
-        hsv_image[:, :, 2] = cv2.multiply(hsv_image[:, :, 2], float(bright_mult))
-        color_rich_image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
+    # 3. Dynamic Depth Enhancement for 3D Effect
+    print("⏳ Enhancing shadows and highlights for dimensionality...")
+    depth_enhanced_image = cv2.convertScaleAbs(edge_preserved_image, alpha=float(depth_alpha), beta=float(depth_beta))
 
-        # 5. Refined Stylization
-        print("[DEBUG] Applying artistic brushstroke effects...")
-        stylized_image = cv2.stylization(color_rich_image, sigma_s=float(style_s), sigma_r=float(style_r))
+    # 4. Adaptive Color Boost
+    print("⏳ Amplifying color vibrancy and contrast...")
+    hsv_image = cv2.cvtColor(depth_enhanced_image, cv2.COLOR_BGR2HSV)
+    hsv_image[:, :, 1] = cv2.multiply(hsv_image[:, :, 1], float(sat_mult))
+    hsv_image[:, :, 2] = cv2.multiply(hsv_image[:, :, 2], float(bright_mult))
+    color_rich_image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
 
-        # 6. Sharpening and Texture Refinement
-        print("[DEBUG] Enhancing sharpness for clarity of medium-sized objects...")
-        sharpened_image = cv2.detailEnhance(stylized_image, sigma_s=float(detail_s), sigma_r=float(detail_r))
+    # 5. Refined Stylization
+    print("⏳ Applying artistic brushstroke effects...")
+    stylized_image = cv2.stylization(color_rich_image, sigma_s=float(style_s), sigma_r=float(style_r))
 
-        # 7. Selective Noise and Anti-Aliasing
-        print("[DEBUG] Adding selective noise to smooth areas and refining edges...")
-        noise = np.random.normal(0, 5, sharpened_image.shape).astype(np.uint8)
-        noised_image = cv2.addWeighted(sharpened_image, 0.97, noise, 0.03, 0)
-        anti_aliased_image = cv2.bilateralFilter(noised_image, d=5, sigmaColor=50, sigmaSpace=50)
+    # 6. Sharpening and Texture Refinement
+    print("⏳ Enhancing sharpness for clarity of medium-sized objects...")
+    sharpened_image = cv2.detailEnhance(stylized_image, sigma_s=float(detail_s), sigma_r=float(detail_r))
 
-        # 8. Lighting Simulation for Cohesiveness
-        print("[DEBUG] Simulating realistic lighting effects...")
-        lighting_map = cv2.GaussianBlur(anti_aliased_image, (11, 11), 5)
-        final_image = cv2.addWeighted(anti_aliased_image, 0.92, lighting_map, 0.08, 0)
+    # 7. Selective Noise and Anti-Aliasing
+    print("⏳ Adding selective noise to smooth areas and refining edges...")
+    noise = np.random.normal(0, 5, sharpened_image.shape).astype(np.uint8)
+    noised_image = cv2.addWeighted(sharpened_image, 0.97, noise, 0.03, 0)
+    anti_aliased_image = cv2.bilateralFilter(noised_image, d=5, sigmaColor=50, sigmaSpace=50)
 
-        # Save the final artistic painting
-        print("[DEBUG] Saving the final painting...")
-        io.imsave(output_path, cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB))
-        print(f"[DEBUG] Final artistic painting saved to: {output_path}")
+    # 8. Lighting Simulation for Cohesiveness
+    print("⏳ Simulating realistic lighting effects...")
+    lighting_map = cv2.GaussianBlur(anti_aliased_image, (11, 11), 5)
+    final_image = cv2.addWeighted(anti_aliased_image, 0.92, lighting_map, 0.08, 0)
 
-    except Exception as e:
-        print(f"[DEBUG] An error occurred in artistic_painting_processor: {e}")
-        raise RuntimeError(f"[ERROR] Error processing the image: {e}")
+    # Save the final artistic painting
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    io.imsave(str(output_path), cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB))
+    print(f"✅ Final artistic painting saved to: {output_path}")
 
 
 def run(state=None):
     """
     Pipeline execution entry point called by video and magazine pipelines.
+    Enforces strict state validation.
     """
-    image_path = "data/testing-input-output/original/photo.jpg"
-    config = {}
+    try:
+        if not state:
+            raise ValueError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object is required for artistic_painting_processor execution.")
+        
+        if not hasattr(state, "original_dir"):
+            raise AttributeError("❌ NO-DEFAULT POLICY VIOLATION: 'state' object lacks 'original_dir' attribute.")
+        
+        image_path = Path(state.original_dir) / "photo.jpg"
 
-    if state:
-        if hasattr(state, "original_dir"):
-            image_path = str(Path(state.original_dir) / "photo.jpg")
-        if hasattr(state, "config") and isinstance(state.config, dict):
-            config = state.config.get("artistic_painting", {})
+        if not hasattr(state, "config") or not isinstance(state.config, dict):
+            raise KeyError("❌ NO-DEFAULT POLICY VIOLATION: 'state.config' dictionary is missing or invalid.")
+        
+        config = state.config.get("artistic_painting")
+        if not config:
+            raise KeyError("❌ NO-DEFAULT POLICY VIOLATION: 'artistic_painting' configuration block is missing from config.json.")
 
-    refined_artistic_transformation(image_path, image_path, config=config)
+        refined_artistic_transformation(image_path, image_path, config=config)
+
+    except Exception as e:
+        print(f"❌ CRITICAL PIPELINE HALT in artistic_painting_processor: {e}")
+        raise RuntimeError(f"[ERROR] Error processing the image: {e}")
 
 
 if __name__ == "__main__":
@@ -139,8 +152,8 @@ if __name__ == "__main__":
         "detail_sigma_s": 10,
         "detail_sigma_r": 0.1
     }
-    input_image_path = "original_photos/photo.jpg"
-    output_artistic_path = "converted_sketches/refined_artistic_painting.jpg"
+    input_image_path = Path("original_photos/photo.jpg")
+    output_artistic_path = Path("converted_sketches/refined_artistic_painting.jpg")
 
     print(f"[DEBUG] Starting refined artistic transformation: {input_image_path}")
     refined_artistic_transformation(input_image_path, output_artistic_path, config=test_config)

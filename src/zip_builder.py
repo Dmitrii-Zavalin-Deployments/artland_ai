@@ -4,75 +4,100 @@ from pathlib import Path
 
 
 def zip_directory(source_dir: Path, zip_path: Path):
-    """Utility: zip all files inside a directory."""
+    """Utility: zip all files inside a directory under strict No-Default checks."""
+    source_dir = Path(source_dir)
+    if not source_dir.exists() or not source_dir.is_dir():
+        raise FileNotFoundError(
+            f"❌ NO-DEFAULT POLICY VIOLATION: Source directory for video photos not found at '{source_dir}'."
+        )
+    
+    files = [p for p in source_dir.glob("**/*") if p.is_file()]
+    if not files:
+        raise FileNotFoundError(
+            f"❌ NO-DEFAULT POLICY VIOLATION: Source directory '{source_dir}' is empty. "
+            f"No processed photos found to zip. Real image processing pipeline output is required."
+        )
+        
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        for file_path in sorted(source_dir.glob("**/*")):
-            if file_path.is_file():
-                arcname = file_path.relative_to(source_dir)
-                zf.write(file_path, arcname=str(arcname))
+        for file_path in sorted(files):
+            arcname = file_path.relative_to(source_dir)
+            zf.write(file_path, arcname=str(arcname))
 
 
 def run(state):
     """
-    Build the two ZIP archives:
-
+    Build the two ZIP archives under strict No-Default Policy:
      ZIP 1 — processed photos for video
-        - source: processed_dir_video
-        - target: processed_photos_zip_path
+       - source: processed_dir_video
+       - target: processed_photos_zip_path
 
-     ZIP 2 — magazine assets (contains magazine_content.pdf, cover_background.jpg, magazine_cover.html at root)
-        - source: book_to_publish directory
-        - target: magazine_assets_zip_path
+     ZIP 2 — magazine assets (Strictly requires verified real files at root)
+       - source: book_to_publish directory
+       - target: magazine_assets_zip_path
     """
-
     try:
         # ---------------------------------------------------------
         # ZIP 1 — processed photos for video
         # ---------------------------------------------------------
         processed_video_zip = Path(state.inputs["processed_photos_zip_path"])
-        zip_directory(state.processed_dir_video, processed_video_zip)
+        source_video_dir = (
+            Path(state.processed_dir_video) 
+            if hasattr(state, "processed_dir_video") and state.processed_dir_video 
+            else Path("data/testing-input-output/processed_video")
+        )
+        zip_directory(source_video_dir, processed_video_zip)
 
         # ---------------------------------------------------------
-        # ZIP 2 — magazine assets (Strictly root-level PDF, Background, and Cover HTML)
+        # ZIP 2 — magazine assets (Strict root-level PDF, Background, and Cover HTML)
         # ---------------------------------------------------------
         magazine_zip = Path(state.inputs["magazine_assets_zip_path"])
-        publish_dir = Path(state.book_to_publish_dir) if hasattr(state, "book_to_publish_dir") else Path("data/testing-input-output/book_to_publish")
+        publish_dir = (
+            Path(state.book_to_publish_dir) 
+            if hasattr(state, "book_to_publish_dir") and state.book_to_publish_dir 
+            else Path("data/testing-input-output/book_to_publish")
+        )
+
+        if not publish_dir.exists() or not publish_dir.is_dir():
+            raise FileNotFoundError(
+                f"❌ NO-DEFAULT POLICY VIOLATION: Publication directory not found at '{publish_dir}'."
+            )
 
         magazine_zip.parent.mkdir(parents=True, exist_ok=True)
-        publish_dir.mkdir(parents=True, exist_ok=True)
 
         pdf_path = publish_dir / "magazine_content.pdf"
         bg_path = publish_dir / "cover_background.jpg"
         html_path = publish_dir / "magazine_cover.html"
 
-        # Fallbacks for legacy names if needed
-        if not pdf_path.exists() and (publish_dir / "photo_collection.pdf").exists():
-            pdf_path = publish_dir / "photo_collection.pdf"
-        if not bg_path.exists() and (publish_dir / "background.jpg").exists():
-            bg_path = publish_dir / "background.jpg"
+        # Strict Validation Checks — NO dummies, NO placeholders, NO silent fallbacks allowed.
+        if not pdf_path.exists():
+            raise FileNotFoundError(
+                f"❌ NO-DEFAULT POLICY VIOLATION: Magazine content PDF is missing at '{pdf_path}'. "
+                f"Expected output from 'generate_photo_pdf.py'."
+            )
+            
+        if not bg_path.exists():
+            raise FileNotFoundError(
+                f"❌ NO-DEFAULT POLICY VIOLATION: Cover background image is missing at '{bg_path}'. "
+                f"Expected output from image processing pipeline."
+            )
+            
+        if not html_path.exists():
+            raise FileNotFoundError(
+                f"❌ NO-DEFAULT POLICY VIOLATION: Magazine cover HTML is missing at '{html_path}'. "
+                f"Expected output from 'generate_cover.py'."
+            )
 
+        # Package verified real assets securely into the ZIP archive
         with zipfile.ZipFile(magazine_zip, "w", zipfile.ZIP_DEFLATED) as zf:
-            # 1. Magazine Content PDF
-            if pdf_path.exists():
-                zf.write(pdf_path, arcname="magazine_content.pdf")
-            else:
-                pdf_path.write_bytes(b"%PDF-1.4 dummy pdf")
-                zf.write(pdf_path, arcname="magazine_content.pdf")
+            zf.write(pdf_path, arcname="magazine_content.pdf")
+            print("✅ Verified Asset Added: magazine_content.pdf")
 
-            # 2. Cover Background Image
-            if bg_path.exists():
-                zf.write(bg_path, arcname="cover_background.jpg")
-            else:
-                bg_path.write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF")
-                zf.write(bg_path, arcname="cover_background.jpg")
+            zf.write(bg_path, arcname="cover_background.jpg")
+            print("✅ Verified Asset Added: cover_background.jpg")
 
-            # 3. Magazine Cover HTML
-            if html_path.exists():
-                zf.write(html_path, arcname="magazine_cover.html")
-            else:
-                fallback_html = "<!DOCTYPE html><html><body><h1>Magazine Cover</h1></body></html>"
-                html_path.write_text(fallback_html, encoding="utf-8")
-                zf.write(html_path, arcname="magazine_cover.html")
+            zf.write(html_path, arcname="magazine_cover.html")
+            print("✅ Verified Asset Added: magazine_cover.html")
 
         # ---------------------------------------------------------
         # Update state results
@@ -87,4 +112,5 @@ def run(state):
             state.results = {}
         state.results["status"] = "error"
         state.results["error"] = str(e)
+        print(f"❌ CRITICAL PIPELINE HALT in zip_builder: {e}")
         raise
