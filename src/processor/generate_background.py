@@ -173,5 +173,5 @@ def run(state=None):
         logger.info("✅ Background generated successfully and saved as: %s", output_path)
 
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
-        logger.exception("❌ CRITICAL PIPELINE HALT in generate_background: %s", e)
+        logger.exception("❌ CRITICAL PIPELINE HALT in generate_background")
         raise RuntimeError(f"[ERROR] Error generating background: {e}")

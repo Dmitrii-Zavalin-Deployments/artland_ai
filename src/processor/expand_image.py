@@ -92,5 +92,5 @@ def run(state=None):
         logger.info("expand_image execution completed successfully.")
 
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
-        logger.exception("❌ CRITICAL PIPELINE HALT in expand_image: %s", e)
+        logger.exception("❌ CRITICAL PIPELINE HALT in expand_image")
         raise RuntimeError(f"[ERROR] Error expanding image: {e}")

@@ -112,7 +112,7 @@ def main():
         state.results["status"] = "error"
         state.results["error"] = str(e)
         state.write_output_json(output_json_path)
-        logger.exception("❌ CRITICAL PIPELINE EXCEPTION: %s", e)
+        logger.exception("❌ CRITICAL PIPELINE EXCEPTION")
         raise
 
     # Write final successful output.json

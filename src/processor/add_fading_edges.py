@@ -128,5 +128,5 @@ def run(state=None):
         logger.info("add_fading_edges execution completed successfully.")
 
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
-        logger.exception("❌ CRITICAL PIPELINE HALT in add_fading_edges: %s", e)
+        logger.exception("❌ CRITICAL PIPELINE HALT in add_fading_edges")
         raise RuntimeError(f"[ERROR] Error processing fading edges: {e}")

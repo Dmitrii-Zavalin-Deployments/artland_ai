@@ -138,5 +138,5 @@ def run(state=None):
         logger.info("artistic_painting_processor execution completed successfully.")
 
     except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
-        logger.exception("❌ CRITICAL PIPELINE HALT in artistic_painting_processor: %s", e)
+        logger.exception("❌ CRITICAL PIPELINE HALT in artistic_painting_processor")
         raise RuntimeError(f"[ERROR] Error processing the image: {e}")

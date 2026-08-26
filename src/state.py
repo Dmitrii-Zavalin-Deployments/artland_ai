@@ -61,5 +61,5 @@ class State:
             with open(out_path, "w", encoding="utf-8") as f:
                 json.dump(output_data, f, indent=2)
         except (OSError, ValueError, TypeError, RuntimeError, KeyError, IndexError, AttributeError) as e:
-            logger.exception("❌ CRITICAL EXCEPTION writing output JSON: %s", e)
+            logger.exception("❌ CRITICAL EXCEPTION writing output JSON")
             raise RuntimeError(f"Could not write output JSON to {output_json_path}: {e}") from e

@@ -78,5 +78,5 @@ def run(state):
             state.results = {}
         state.results["status"] = "error"
         state.results["error"] = str(e)
-        logger.exception("❌ CRITICAL PIPELINE HALT in artistic_pipeline_video: %s", e)
+        logger.exception("❌ CRITICAL PIPELINE HALT in artistic_pipeline_video")
         raise
