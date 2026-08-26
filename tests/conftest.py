@@ -1,8 +1,8 @@
 import json
 import sys
 from pathlib import Path
+
 import pytest
-from PIL import Image
 
 # Ensure 'src' is in pythonpath for direct module imports
 src_path = Path(__file__).parent.parent / "src"
