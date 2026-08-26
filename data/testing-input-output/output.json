@@ -62,8 +62,8 @@
     }
   },
   "results": {
-    "date_time": "2026-08-26T01:23:18.971837+00:00",
+    "date_time": "2026-08-26T01:29:19.564302+00:00",
     "status": "error",
-    "error": "PosixPath('/home/runner/work/artland_ai/artland_ai/data/testing-input-output/original/frame_00000.jpg') and PosixPath('/home/runner/work/artland_ai/artland_ai/data/testing-input-output/original/frame_00000.jpg') are the same file"
+    "error": "\u274c NO-DEFAULT POLICY VIOLATION: Source background image not found at '/home/runner/work/artland_ai/artland_ai/data/testing-input-output/book_compilation/background.jpg'. No default values allowed."
   }
 }
