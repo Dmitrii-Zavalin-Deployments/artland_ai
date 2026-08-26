@@ -1,5 +1,4 @@
 # tests/test_expand_image_coverage.py
-from pathlib import Path
 import pytest
 from PIL import Image
 

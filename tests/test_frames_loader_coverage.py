@@ -1,6 +1,6 @@
 # tests/test_frames_loader_coverage.py
-from pathlib import Path
 import zipfile
+
 import pytest
 
 import frames_loader

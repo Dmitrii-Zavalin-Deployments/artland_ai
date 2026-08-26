@@ -1,5 +1,4 @@
 # tests/test_artistic_pipeline_video_coverage.py
-from pathlib import Path
 import pytest
 
 import artistic_pipeline_video

@@ -1,5 +1,4 @@
 # tests/test_artistic_pipeline_magazine_coverage.py
-from pathlib import Path
 import pytest
 
 import artistic_pipeline_magazine
@@ -105,7 +104,6 @@ def test_working_file_missing_after_processing(setup_pipeline_environment, tmp_p
     state = State({}, {}, tmp_path)
     state.frame_paths = [external_frame]
 
-    import processor.artistic_painting_processor as app
     def delete_working_file(s):
         if s.current_frame_path.exists():
             s.current_frame_path.unlink()

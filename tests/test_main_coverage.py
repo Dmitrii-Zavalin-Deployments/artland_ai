@@ -1,10 +1,9 @@
 # tests/test_main_coverage.py
 import json
+
 import pytest
-from pathlib import Path
 
 import main
-from state import State
 
 
 def test_main_schema_validation_failure(setup_pipeline_environment, tmp_path, monkeypatch):
@@ -86,8 +85,8 @@ def test_main_halt_at_artistic_pipeline_video(setup_pipeline_environment, tmp_pa
         ],
     )
 
-    import frames_loader
     import artistic_pipeline_video
+    import frames_loader
 
     monkeypatch.setattr(frames_loader, "run", lambda s: setattr(s, "results", {"status": "success"}))
     def mock_video_error(state):
@@ -120,9 +119,9 @@ def test_main_halt_at_artistic_pipeline_magazine(setup_pipeline_environment, tmp
         ],
     )
 
-    import frames_loader
-    import artistic_pipeline_video
     import artistic_pipeline_magazine
+    import artistic_pipeline_video
+    import frames_loader
 
     monkeypatch.setattr(frames_loader, "run", lambda s: setattr(s, "results", {"status": "success"}))
     monkeypatch.setattr(artistic_pipeline_video, "run", lambda s: setattr(s, "results", {"status": "success"}))
@@ -156,9 +155,9 @@ def test_main_halt_at_zip_builder(setup_pipeline_environment, tmp_path, monkeypa
         ],
     )
 
-    import frames_loader
-    import artistic_pipeline_video
     import artistic_pipeline_magazine
+    import artistic_pipeline_video
+    import frames_loader
     import zip_builder
 
     monkeypatch.setattr(frames_loader, "run", lambda s: setattr(s, "results", {"status": "success"}))

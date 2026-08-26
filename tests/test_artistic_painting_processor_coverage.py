@@ -1,8 +1,7 @@
 # tests/test_artistic_painting_processor_coverage.py
-from pathlib import Path
-import pytest
 import cv2
 import numpy as np
+import pytest
 
 import processor.artistic_painting_processor as app
 from state import State

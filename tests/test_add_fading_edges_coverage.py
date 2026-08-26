@@ -1,8 +1,7 @@
 # tests/test_add_fading_edges_coverage.py
-from pathlib import Path
-import pytest
 import cv2
 import numpy as np
+import pytest
 
 import processor.add_fading_edges as afte
 from state import State
