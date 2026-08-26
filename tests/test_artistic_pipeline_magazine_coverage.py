@@ -67,31 +67,31 @@ def test_missing_processor_run_methods(setup_pipeline_environment, tmp_path, mon
         artistic_pipeline_magazine.run(state)
 
     # 2. add_fading_edges lacks run
-    setattr(app, "run", lambda s: None)
+    app.run = lambda s: None
     monkeypatch.delattr(afe, "run", raising=False)
     with pytest.raises(AttributeError, match="add_fading_edges.*lacks a 'run' method"):
         artistic_pipeline_magazine.run(state)
 
     # 3. generate_background lacks run
-    setattr(afe, "run", lambda s: None)
+    afe.run = lambda s: None
     monkeypatch.delattr(gb, "run", raising=False)
     with pytest.raises(AttributeError, match="generate_background.*lacks a 'run' method"):
         artistic_pipeline_magazine.run(state)
 
     # 4. expand_image lacks run
-    setattr(gb, "run", lambda s: None)
+    gb.run = lambda s: None
     monkeypatch.delattr(ei, "run", raising=False)
     with pytest.raises(AttributeError, match="expand_image.*lacks a 'run' method"):
         artistic_pipeline_magazine.run(state)
 
     # 5. generate_photo_pdf lacks run
-    setattr(ei, "run", lambda s: None)
+    ei.run = lambda s: None
     monkeypatch.delattr(gpdf, "run", raising=False)
     with pytest.raises(AttributeError, match="generate_photo_pdf.*lacks a 'run' method"):
         artistic_pipeline_magazine.run(state)
 
     # 6. generate_cover lacks run
-    setattr(gpdf, "run", lambda s: None)
+    gpdf.run = lambda s: None
     monkeypatch.delattr(gcov, "run", raising=False)
     with pytest.raises(AttributeError, match="generate_cover.*lacks a 'run' method"):
         artistic_pipeline_magazine.run(state)
