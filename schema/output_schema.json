@@ -4,25 +4,242 @@
     "inputs": {
       "type": "object",
       "properties": {
-        "input_example": { "type": "string" }
+        "input_zip_path": {
+          "type": "string"
+        },
+        "processed_photos_zip_path": {
+          "type": "string"
+        },
+        "magazine_assets_zip_path": {
+          "type": "string"
+        }
       },
-      "required": ["input_example"]
+      "required": [
+        "input_zip_path",
+        "processed_photos_zip_path",
+        "magazine_assets_zip_path"
+      ]
     },
     "config": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Artland AI Pipeline Configuration Schema",
       "type": "object",
+      "required": [
+        "magazine_cover",
+        "fading_edges",
+        "artistic_painting",
+        "expand_image",
+        "generate_background"
+      ],
       "properties": {
-        "project": { "type": "string" },
-        "short_name": { "type": "string" }
+        "magazine_cover": {
+          "type": "object",
+          "required": [
+            "title",
+            "issue",
+            "tagline",
+            "subtitle",
+            "author"
+          ],
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "issue": {
+              "type": "string"
+            },
+            "tagline": {
+              "type": "string"
+            },
+            "subtitle": {
+              "type": "string"
+            },
+            "author": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "fading_edges": {
+          "type": "object",
+          "required": [
+            "canvas_width",
+            "canvas_height",
+            "top_bottom_divisor",
+            "left_right_divisor"
+          ],
+          "properties": {
+            "canvas_width": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "canvas_height": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "top_bottom_divisor": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "left_right_divisor": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "artistic_painting": {
+          "type": "object",
+          "required": [
+            "bilateral_d",
+            "sigma_color",
+            "sigma_space",
+            "canny_threshold1",
+            "canny_threshold2",
+            "depth_alpha",
+            "depth_beta",
+            "saturation_multiplier",
+            "brightness_multiplier",
+            "stylization_sigma_s",
+            "stylization_sigma_r",
+            "detail_sigma_s",
+            "detail_sigma_r"
+          ],
+          "properties": {
+            "bilateral_d": {
+              "type": "integer"
+            },
+            "sigma_color": {
+              "type": "number"
+            },
+            "sigma_space": {
+              "type": "number"
+            },
+            "canny_threshold1": {
+              "type": "number"
+            },
+            "canny_threshold2": {
+              "type": "number"
+            },
+            "depth_alpha": {
+              "type": "number"
+            },
+            "depth_beta": {
+              "type": "number"
+            },
+            "saturation_multiplier": {
+              "type": "number"
+            },
+            "brightness_multiplier": {
+              "type": "number"
+            },
+            "stylization_sigma_s": {
+              "type": "number"
+            },
+            "stylization_sigma_r": {
+              "type": "number"
+            },
+            "detail_sigma_s": {
+              "type": "number"
+            },
+            "detail_sigma_r": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        },
+        "expand_image": {
+          "type": "object",
+          "required": [
+            "scale_factor_y",
+            "num_repeats_x"
+          ],
+          "properties": {
+            "scale_factor_y": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "num_repeats_x": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "generate_background": {
+          "type": "object",
+          "required": [
+            "brightness_threshold",
+            "num_colors_per_image",
+            "gradient_width",
+            "gradient_height",
+            "fallback_colors"
+          ],
+          "properties": {
+            "brightness_threshold": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "num_colors_per_image": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "gradient_width": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "gradient_height": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "fallback_colors": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 255
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "minItems": 1
+            }
+          },
+          "additionalProperties": false
+        }
       },
-      "required": ["project", "short_name"]
+      "additionalProperties": false
     },
     "results": {
       "type": "object",
+      "description": "Execution output details including final status and error logs if any.",
       "properties": {
-        "status": { "type": "string" }
+        "status": {
+          "type": "string",
+          "description": "Current status of the execution (e.g., success, error)."
+        },
+        "error": {
+          "type": "string",
+          "description": "Error description if the video generation fails."
+        },
+        "date_time": {
+          "type": "string",
+          "description": "Timestamp of when the execution results were compiled in ISO 8601 format."
+        }
       },
-      "required": ["status"]
+      "required": [
+        "status",
+        "error",
+        "date_time"
+      ]
     }
   },
-  "required": ["inputs", "config", "results"]
+  "required": [
+    "inputs",
+    "config",
+    "results"
+  ]
 }

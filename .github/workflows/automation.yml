@@ -381,10 +381,10 @@ jobs:
           echo "🎉 All artifact verification checks passed successfully!"
           echo "------------------------------------------------------------"
       
-      # - name: 🛡 Post-Execution Schema Compliance Audit
-      #   run: |
-      #     echo "--- Running Standalone JSON Schema Verification ---"
-      #     python src/utils/validate_schema.py
+      - name: 🛡 Post-Execution Schema Compliance Audit
+        run: |
+          echo "--- Running Standalone JSON Schema Verification ---"
+          python src/utils/validate_schema.py
 
       - name: 💾 Sync Testing Assets to Repository
         if: always()

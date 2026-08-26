@@ -1,43 +1,65 @@
 # src/processor/generate_cover.py
 import os
+import json
 from pathlib import Path
 
 def run(state=None):
     """
     Generates magazine_cover.html from the cover template, substituting metadata fields
-    from state inputs/config or fallback defaults.
+    strictly from pipeline state or config (No-Default Policy enforcement).
     """
+    output_dir = Path("data/testing-input-output/book_to_publish")
     if state and hasattr(state, "book_to_publish_dir"):
         output_dir = Path(state.book_to_publish_dir)
-    else:
-        github_workspace = os.getenv("GITHUB_WORKSPACE", os.getcwd())
-        output_dir = Path("data/testing-input-output/book_to_publish")
 
     output_dir.mkdir(parents=True, exist_ok=True)
     cover_html_path = output_dir / "magazine_cover.html"
 
-    # Extract metadata from state inputs/config or use robust defaults
-    title = "Artistic Landscapes"
-    issue = "Issue No. 1"
-    tagline = "AI-Generated Visual Poetry"
-    subtitle = "Exploring algorithmic synthesis and modern aesthetics"
-    author = "Dmitrii Zavalin"
+    # Extract metadata with No-Default Policy enforcement
+    title = None
+    issue = None
+    tagline = None
+    subtitle = None
+    author = None
 
     if state:
+        # 1. Check state.inputs
         if hasattr(state, "inputs") and isinstance(state.inputs, dict):
-            title = state.inputs.get("title", title)
-            issue = state.inputs.get("issue", issue)
-            tagline = state.inputs.get("tagline", tagline)
-            subtitle = state.inputs.get("subtitle", subtitle)
-            author = state.inputs.get("author", author)
-        elif hasattr(state, "config") and isinstance(state.config, dict):
-            title = state.config.get("title", title)
-            issue = state.config.get("issue", issue)
-            tagline = state.config.get("tagline", tagline)
-            subtitle = state.config.get("subtitle", subtitle)
-            author = state.config.get("author", author)
+            title = title or state.inputs.get("title")
+            issue = issue or state.inputs.get("issue")
+            tagline = tagline or state.inputs.get("tagline")
+            subtitle = subtitle or state.inputs.get("subtitle")
+            author = author or state.inputs.get("author")
 
-    # Read template file or use fallback string
+        # 2. Check state.config (supporting nested "magazine_cover" block and flat config)
+        if hasattr(state, "config") and isinstance(state.config, dict):
+            mag_cfg = state.config.get("magazine_cover", {})
+            if isinstance(mag_cfg, dict):
+                title = title or mag_cfg.get("title")
+                issue = issue or mag_cfg.get("issue")
+                tagline = tagline or mag_cfg.get("tagline")
+                subtitle = subtitle or mag_cfg.get("subtitle")
+                author = author or mag_cfg.get("author")
+            
+            title = title or state.config.get("title")
+            issue = issue or state.config.get("issue")
+            tagline = tagline or state.config.get("tagline")
+            subtitle = subtitle or state.config.get("subtitle")
+            author = author or state.config.get("author")
+
+    # Enforce No-Default Policy: Raise deterministic error if any required metadata is missing
+    missing_meta = [k for k, v in [
+        ("title", title), 
+        ("issue", issue), 
+        ("tagline", tagline), 
+        ("subtitle", subtitle), 
+        ("author", author)
+    ] if not v]
+
+    if missing_meta:
+        raise ValueError(f"❌ No-Default Policy Error: Required magazine_cover metadata fields missing from inputs/config: {missing_meta}")
+
+    # Read template file or use fallback HTML structure
     template_path = Path("src/processor/cover_template.html")
     if template_path.exists():
         html_content = template_path.read_text(encoding="utf-8")
@@ -98,5 +120,17 @@ def run(state=None):
             state.results = {}
         state.results["magazine_cover_path"] = str(cover_html_path)
 
+
 if __name__ == "__main__":
-    run()
+    # Production direct execution loading real config from disk
+    class ProductionRuntimeState:
+        def __init__(self):
+            self.book_to_publish_dir = "data/testing-input-output/book_to_publish"
+            config_file = Path("config/config.json")
+            if config_file.exists():
+                with open(config_file, "r", encoding="utf-8") as f:
+                    self.config = json.load(f)
+            else:
+                raise FileNotFoundError(f"Production config not found at {config_file}")
+
+    run(ProductionRuntimeState())
