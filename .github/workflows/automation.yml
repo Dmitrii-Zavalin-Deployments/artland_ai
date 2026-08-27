@@ -368,6 +368,22 @@ jobs:
           echo "--- Running Standalone JSON Schema Verification ---"
           python src/utils/validate_schema.py
 
+      - name: 📦 Upload Processed Photos Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: processed-photos-package
+          path: data/testing-input-output/processed_photos.zip
+          retention-days: 1
+
+      - name: 📦 Upload Magazine Assets Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: magazine-assets-package
+          path: data/testing-input-output/magazine_assets.zip
+          retention-days: 1
+
       - name: 💾 Sync Testing Assets to Repository
         if: always()
         run: |
@@ -380,16 +396,11 @@ jobs:
           # 3. Restore stashed changes
           git stash pop || true
 
-          echo "📦 Adding Artland AI output artifacts…"
+          # 4. Explicitly add ONLY the lightweight metadata JSON (avoiding heavy zip packages)
+          git add data/testing-input-output/output.json || true
 
-          # Explicitly add ONLY the deterministic artifacts:
-          git add \
-            data/testing-input-output/output.json \
-            data/testing-input-output/processed_photos.zip \
-            data/testing-input-output/magazine_assets.zip
-
-          # 4. Commit/Push with Notes
-          if [ -n "$(git status --porcelain data/testing-input-output/output.json data/testing-input-output/processed_photos.zip data/testing-input-output/magazine_assets.zip)" ]; then
+          # 5. Commit/Push with Notes
+          if [ -n "$(git status --porcelain data/testing-input-output/output.json)" ]; then
             git commit -m "🤖 robot b: sync testing assets [${{ job.status }}]"
             TARGET_COMMIT=$(git rev-parse HEAD)
 
@@ -407,6 +418,16 @@ jobs:
           else
             echo "No testing asset changes detected. Sync skipped."
           fi
+
+          # 📦 Informational notice regarding the decoupled ZIP artifacts
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          echo "------------------------------------------------------------------"
+          echo "📦 ARTIFACT NOTICE: processed_photos.zip and magazine_assets.zip"
+          echo "    were excluded from Git to stay under GitHub's 100 MB file-size limit."
+          echo "✨ Instead, they have been successfully uploaded as GitHub Action Artifacts!"
+          echo "🔗 Download your asset packages directly from the run summary page:"
+          echo "    $RUN_URL"
+          echo "------------------------------------------------------------------"
 
       - name: 📊 Audit Performance Ledger & Sync
         if: always()
