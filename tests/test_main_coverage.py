@@ -1,5 +1,6 @@
 # tests/test_main_coverage.py
 import json
+import logging
 
 import pytest
 
@@ -32,6 +33,56 @@ def test_main_schema_validation_failure(setup_pipeline_environment, tmp_path, mo
     data = json.loads(output_json.read_text(encoding="utf-8"))
     assert data["results"]["status"] == "error"
     assert "ValidationError" in data["results"]["error"] or len(data["results"]["error"]) > 0
+
+
+def test_main_logging_basic_config(setup_pipeline_environment, tmp_path, monkeypatch):
+    """Covers line 38: logging.basicConfig when no handlers exist."""
+    input_file = tmp_path / "project" / "input.json"
+    input_file.write_text(
+        json.dumps(
+            {
+                "input_zip_path": "dummy.zip",
+                "processed_photos_zip_path": "processed.zip",
+                "magazine_assets_zip_path": "magazine.zip",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "main.py",
+            "--input_output_folder",
+            str(tmp_path / "project"),
+            "--input_file_name",
+            "input.json",
+            "--output_file_name",
+            "output.json",
+        ],
+    )
+
+    root_logger = logging.getLogger()
+    old_handlers = root_logger.handlers[:]
+    root_logger.handlers.clear()
+
+    try:
+        import frames_loader
+        import artistic_pipeline_video
+        import artistic_pipeline_magazine
+        import zip_builder
+
+        monkeypatch.setattr(frames_loader, "run", lambda s: setattr(s, "results", {"status": "success"}))
+        monkeypatch.setattr(artistic_pipeline_video, "run", lambda s: setattr(s, "results", {"status": "success"}))
+        monkeypatch.setattr(artistic_pipeline_magazine, "run", lambda s: setattr(s, "results", {"status": "success"}))
+        monkeypatch.setattr(zip_builder, "run", lambda s: setattr(s, "results", {"status": "success"}))
+
+        main.main()
+    finally:
+        root_logger.handlers.extend(old_handlers)
+
+    output_json = tmp_path / "project" / "output.json"
+    assert output_json.exists()
 
 
 def test_main_halt_at_frames_loader(setup_pipeline_environment, tmp_path, monkeypatch):
@@ -260,3 +311,48 @@ def test_main_critical_exception_handling(setup_pipeline_environment, tmp_path, 
     data = json.loads(output_json.read_text(encoding="utf-8"))
     assert data["results"]["status"] == "error"
     assert "Unexpected catastrophic failure" in data["results"]["error"]
+
+
+def test_main_critical_exception_missing_results(setup_pipeline_environment, tmp_path, monkeypatch):
+    """Covers line 118: state.results is None when critical exception occurs."""
+    input_file = tmp_path / "project" / "input.json"
+    input_file.write_text(
+        json.dumps(
+            {
+                "input_zip_path": "dummy.zip",
+                "processed_photos_zip_path": "processed.zip",
+                "magazine_assets_zip_path": "magazine.zip",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "main.py",
+            "--input_output_folder",
+            str(tmp_path / "project"),
+            "--input_file_name",
+            "input.json",
+            "--output_file_name",
+            "output.json",
+        ],
+    )
+
+    import frames_loader
+
+    def raise_with_none_results(state):
+        state.results = None
+        raise RuntimeError("Catastrophic error with null results")
+
+    monkeypatch.setattr(frames_loader, "run", raise_with_none_results)
+
+    with pytest.raises(RuntimeError, match="Catastrophic error with null results"):
+        main.main()
+
+    output_json = tmp_path / "project" / "output.json"
+    assert output_json.exists()
+    data = json.loads(output_json.read_text(encoding="utf-8"))
+    assert data["results"]["status"] == "error"
+    assert "Catastrophic error with null results" in data["results"]["error"]
