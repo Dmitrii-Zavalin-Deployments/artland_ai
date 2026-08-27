@@ -79,14 +79,16 @@ def group_colors_by_lightness(colors):
 def create_smoother_gradient_background(colors, width, height):
     """Generates a highly blended, grouped-color gradient background with light-to-dark transition."""
     logger.debug("Creating smoother gradient background of dimensions %sx%s", width, height)
-    gradient = np.zeros((int(height), int(width), 3), dtype=np.uint8)
+    height_int = int(height)
+    width_int = int(width)
+    gradient = np.zeros((height_int, width_int, 3), dtype=np.uint8)
     colors_sorted = group_colors_by_lightness(colors)
 
     if len(colors_sorted) < 2:
         colors_sorted = colors_sorted * 2  # Ensure at least 2 colors for interpolation
 
-    for i in range(int(height)):
-        normalized_height = i / height
+    for i in range(height_int):
+        normalized_height = i / (height_int - 1) if height_int > 1 else 0.0
         primary_color_index = int(normalized_height * (len(colors_sorted) - 1))
         
         if primary_color_index >= len(colors_sorted) - 1:
@@ -163,7 +165,7 @@ def run(state=None):
 
         # Use config-defined fallback colors if none extracted
         if not unique_colors:
-            logger.warning("⚠️ No colors extracted from images. Using config fallback colors.")
+            logger.warning("⚠ No colors extracted from images. Using config fallback colors.")
             unique_colors = fallback_colors
 
         # Generate and save background
