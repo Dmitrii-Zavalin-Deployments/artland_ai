@@ -1,9 +1,10 @@
 # tests/test_generate_photo_pdf_coverage.py
+import builtins
 from pathlib import Path
 
 import pytest
 from PIL import Image
-import builtins
+
 import processor.generate_photo_pdf as gpp
 from state import State
 
