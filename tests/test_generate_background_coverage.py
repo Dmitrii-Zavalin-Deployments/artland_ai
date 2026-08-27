@@ -53,7 +53,7 @@ def test_create_smoother_gradient_index_bound(monkeypatch):
     """Covers line 93: primary_color_index >= len(colors_sorted) - 1 boundary condition."""
     colors = [[255, 255, 255], [0, 0, 0]]
     # Monkeypatch range in generate_background module to trigger boundary index condition
-    monkeypatch.setattr("builtins.range", lambda x: [0, 1])
+    monkeypatch.setattr("builtins.range", lambda x: [0, int(x)])
     result = gb.create_smoother_gradient_background(colors, width=10, height=2)
     assert result.shape == (2, 10, 3)
 
