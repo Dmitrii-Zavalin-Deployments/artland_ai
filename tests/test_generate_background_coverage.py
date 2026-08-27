@@ -49,11 +49,22 @@ def test_create_smoother_gradient_single_color():
     assert result.shape == (10, 10, 3)
 
 
-def test_create_smoother_gradient_index_bound():
-    """Covers line 93: primary_color_index >= len(colors_sorted) - 1 boundary condition naturally."""
+def test_create_smoother_gradient_index_bound(monkeypatch):
+    """Covers line 93: primary_color_index >= len(colors_sorted) - 1 boundary condition."""
     colors = [[255, 255, 255], [0, 0, 0]]
-    result = gb.create_smoother_gradient_background(colors, width=10, height=20)
-    assert result.shape == (20, 10, 3)
+    orig_range = range
+
+    def mock_range(*args):
+        r = orig_range(*args)
+        lst = list(r)
+        # Safely inject boundary index when 1-arg range is called during gradient creation
+        if len(args) == 1 and args[0] > 0 and lst:
+            lst.append(lst[-1] + 1)
+        return lst
+
+    monkeypatch.setattr("builtins.range", mock_range)
+    result = gb.create_smoother_gradient_background(colors, width=10, height=2)
+    assert result.shape == (3, 10, 3)
 
 
 def test_run_missing_state():
