@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 from PIL import Image
-
+import builtins
 import processor.generate_photo_pdf as gpp
 from state import State
 
@@ -206,3 +206,32 @@ def test_main_execution(monkeypatch):
     """Covers lines 134-135: main() execution function."""
     monkeypatch.setattr(gpp, "run", lambda state: None)
     gpp.main()
+
+def test_run_image_list_empty_value_error(tmp_path, monkeypatch):
+    """Covers line 69: ValueError when image_list is empty during PDF generation."""
+    input_dir = tmp_path / "compilation"
+    output_dir = tmp_path / "publish"
+    input_dir.mkdir()
+    
+    # Create valid dummy files so line 52 (image_files check) passes
+    img_path = input_dir / "frame1.jpg"
+    Image.new("RGB", (50, 50)).save(img_path)
+    bg_path = input_dir / "cover_background.jpg"
+    Image.new("RGB", (50, 50)).save(bg_path)
+
+    state = State({}, {}, tmp_path)
+    state.book_compilation_dir = str(input_dir)
+    state.book_to_publish_dir = str(output_dir)
+
+    # Monkeypatch builtins.sorted to return an empty list for our image files,
+    # causing the compilation loop to be skipped and image_list to remain empty.
+    orig_sorted = builtins.sorted
+    def mock_sorted(iterable, *args, **kwargs):
+        if any(str(img_path) in str(x) for x in iterable):
+            return []
+        return orig_sorted(iterable, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "sorted", mock_sorted)
+
+    with pytest.raises(RuntimeError, match="Error generating magazine PDF file"):
+        gpp.run(state)
