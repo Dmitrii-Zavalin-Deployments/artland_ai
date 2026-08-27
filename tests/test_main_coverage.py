@@ -67,9 +67,9 @@ def test_main_logging_basic_config(setup_pipeline_environment, tmp_path, monkeyp
     root_logger.handlers.clear()
 
     try:
-        import frames_loader
-        import artistic_pipeline_video
         import artistic_pipeline_magazine
+        import artistic_pipeline_video
+        import frames_loader
         import zip_builder
 
         monkeypatch.setattr(frames_loader, "run", lambda s: setattr(s, "results", {"status": "success"}))
