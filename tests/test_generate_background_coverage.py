@@ -109,9 +109,14 @@ def test_run_fallback_colors_and_success(tmp_path):
     state.book_compilation_dir = tmp_path / "book"
     state.book_compilation_dir.mkdir(parents=True, exist_ok=True)
     
-    # Create a dark image in the folder so process_images finds it but extracts 0 bright colors
+    # Create a dark image with multiple distinct dark pixel regions so KMeans 
+    # receives enough unique points to avoid ConvergenceWarning, while all 
+    # pixels remain below the high brightness threshold (250).
     img_path = state.book_compilation_dir / "sample.jpg"
     img = np.zeros((50, 50, 3), dtype=np.uint8)
+    img[0:15, :] = [5, 5, 5]
+    img[15:30, :] = [10, 10, 10]
+    img[30:, :] = [15, 15, 15]
     cv2.imwrite(str(img_path), img)
 
     state.config = {
