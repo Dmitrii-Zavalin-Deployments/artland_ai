@@ -7,12 +7,13 @@ import fallbacks, JSON/schema loaders, schema validation errors, pipeline step e
 and global exception handlers.
 """
 
-import sys
 import importlib
 import json
 import logging
+import sys
 from pathlib import Path
 from unittest.mock import patch
+
 import pytest
 
 import src.main
@@ -56,6 +57,7 @@ def test_import_error_fallback():
     # We simulate relative import failure by intercepting package context.
     with patch.dict("sys.modules", {".": None}):
         import importlib
+
         import src.main
         importlib.reload(src.main)
         
