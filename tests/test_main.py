@@ -9,6 +9,7 @@ fallback import blocks, debug-level logging pathways, and file-not-found excepti
 import logging
 import sys
 from unittest.mock import patch
+import pytest
 
 from src.main import load_json, load_schema
 
