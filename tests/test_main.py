@@ -109,7 +109,9 @@ def test_main_schema_validation_error(tmp_path):
     folder.mkdir(parents=True, exist_ok=True)
 
     input_file = folder / "input.json"
-    input_file.write_text('{"input_zip_path": "dummy.zip", "invalid_field": true}', encoding="utf-8")
+    dummy_zip = folder / "dummy.zip"
+    dummy_zip.touch()
+    input_file.write_text(json.dumps({"input_zip_path": str(dummy_zip), "invalid_field": True}), encoding="utf-8")
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
@@ -149,7 +151,9 @@ def test_main_successful_execution(tmp_path, monkeypatch):
     folder.mkdir(parents=True, exist_ok=True)
 
     input_file = folder / "input.json"
-    input_file.write_text('{"input_zip_path": "dummy.zip", "valid_key": "value"}', encoding="utf-8")
+    dummy_zip = folder / "dummy.zip"
+    dummy_zip.touch()
+    input_file.write_text(json.dumps({"input_zip_path": str(dummy_zip), "valid_key": "value"}), encoding="utf-8")
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
@@ -194,7 +198,9 @@ def test_main_pipeline_step_error_halts(tmp_path, monkeypatch):
     folder.mkdir(parents=True, exist_ok=True)
 
     input_file = folder / "input.json"
-    input_file.write_text('{"input_zip_path": "dummy.zip", "valid_key": "value"}', encoding="utf-8")
+    dummy_zip = folder / "dummy.zip"
+    dummy_zip.touch()
+    input_file.write_text(json.dumps({"input_zip_path": str(dummy_zip), "valid_key": "value"}), encoding="utf-8")
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
@@ -240,7 +246,9 @@ def test_main_global_exception_handler(tmp_path, monkeypatch):
     folder.mkdir(parents=True, exist_ok=True)
 
     input_file = folder / "input.json"
-    input_file.write_text('{"input_zip_path": "dummy.zip", "valid_key": "value"}', encoding="utf-8")
+    dummy_zip = folder / "dummy.zip"
+    dummy_zip.touch()
+    input_file.write_text(json.dumps({"input_zip_path": str(dummy_zip), "valid_key": "value"}), encoding="utf-8")
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
