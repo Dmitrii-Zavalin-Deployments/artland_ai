@@ -1,4 +1,14 @@
 # tests/test_artistic_pipeline_magazine_coverage.py
+"""
+Literate Test Suite: Artistic Pipeline Magazine Coverage & Edge Cases
+====================================================================
+Narrative verification ensuring absolute 100% test coverage across all branches,
+path insertions, processor delegations, and error handling protocols.
+"""
+
+import sys
+import importlib
+from pathlib import Path
 import pytest
 
 import artistic_pipeline_magazine
@@ -6,7 +16,10 @@ from state import State
 
 
 def set_all_processor_runs(monkeypatch, **overrides):
-    """Helper to mock run methods across all magazine pipeline processors."""
+    """
+    Narrative: Helper utility to mock execution entry points ('run') across 
+    all sub-processors invoked during the magazine pipeline compilation stages.
+    """
     import processor.add_fading_edges as afe
     import processor.artistic_painting_processor as app
     import processor.expand_image as ei
@@ -22,8 +35,35 @@ def set_all_processor_runs(monkeypatch, **overrides):
     monkeypatch.setattr(gcov, "run", overrides.get("gcov_run", lambda s: None))
 
 
+def test_sys_path_insertion_coverage():
+    """
+    Narrative: When the parent directory of artistic_pipeline_magazine is temporarily
+    removed from sys.path, importing or reloading the module forces the execution 
+    of the dynamic path insertion guard (Line 10), ensuring complete branch coverage.
+    """
+    parent_path_str = str(Path(artistic_pipeline_magazine.__file__).resolve().parent.parent)
+    
+    # We temporarily sanitize sys.path to evict the parent path.
+    original_path = list(sys.path)
+    try:
+        while parent_path_str in sys.path:
+            sys.path.remove(parent_path_str)
+            
+        # Reloading the module triggers the conditional sys.path insertion on line 10.
+        importlib.reload(artistic_pipeline_magazine)
+        
+        # We assert that the parent path was successfully restored into sys.path.
+        assert parent_path_str in sys.path
+    finally:
+        sys.path[:] = original_path
+        importlib.reload(artistic_pipeline_magazine)
+
+
 def test_magazine_no_frames_raises_error(setup_pipeline_environment, tmp_path):
-    """Covers line 43: ValueError when frame_paths is empty or missing."""
+    """
+    Narrative: When state.frame_paths is empty or undefined, the magazine pipeline 
+    must enforce the No-Default Policy by immediately raising a ValueError.
+    """
     state = State({}, {}, tmp_path)
     state.frame_paths = []
 
@@ -32,7 +72,10 @@ def test_magazine_no_frames_raises_error(setup_pipeline_environment, tmp_path):
 
 
 def test_magazine_same_file_path_handling(setup_pipeline_environment, tmp_path, monkeypatch):
-    """Covers line 55: Same-file check where source and destination resolve identically."""
+    """
+    Narrative: When frame paths and working file paths resolve identically, 
+    shutil.SameFileError is safely guarded and the compilation proceeds successfully.
+    """
     original_dir = tmp_path / "original"
     original_dir.mkdir(parents=True, exist_ok=True)
     frame = original_dir / "sample.jpg"
@@ -47,7 +90,10 @@ def test_magazine_same_file_path_handling(setup_pipeline_environment, tmp_path, 
 
 
 def test_missing_processor_run_methods(setup_pipeline_environment, tmp_path, monkeypatch):
-    """Covers lines 62, 68, 95, 103, 111, 119: AttributeError when processors lack a 'run' method."""
+    """
+    Narrative: If any required sub-processor lacks a 'run' method, the pipeline 
+    must raise an AttributeError upholding the No-Default Policy contract.
+    """
     import processor.add_fading_edges as afe
     import processor.artistic_painting_processor as app
     import processor.expand_image as ei
@@ -98,7 +144,10 @@ def test_missing_processor_run_methods(setup_pipeline_environment, tmp_path, mon
 
 
 def test_working_file_missing_after_processing(setup_pipeline_environment, tmp_path, monkeypatch):
-    """Covers line 74: FileNotFoundError when working frame is missing after processing."""
+    """
+    Narrative: If a processed working frame file is deleted or missing after processing steps,
+    the pipeline must raise a FileNotFoundError in compliance with the No-Default Policy.
+    """
     external_frame = tmp_path / "external_frame.jpg"
     external_frame.write_bytes(b"dummy image data")
 
@@ -118,7 +167,10 @@ def test_working_file_missing_after_processing(setup_pipeline_environment, tmp_p
 
 
 def test_results_none_initialization_and_exception_handling(setup_pipeline_environment, tmp_path, monkeypatch):
-    """Covers line 124 (state.results = {} when None) and lines 129-135 (exception block)."""
+    """
+    Narrative: When state.results is initialized to None, the pipeline must safely initialize
+    it into a dictionary and capture unexpected exceptions into the error result state.
+    """
     external_frame = tmp_path / "external_frame.jpg"
     external_frame.write_bytes(b"dummy image data")
 
