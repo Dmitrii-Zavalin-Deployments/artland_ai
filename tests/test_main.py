@@ -6,12 +6,9 @@ Narrative verification ensuring absolute 100% test coverage by exercising
 fallback import blocks (ImportError) and debug-level logging pathways for JSON and schema loaders.
 """
 
-import json
 import logging
 import sys
-from pathlib import Path
 from unittest.mock import patch
-import pytest
 
 from src.main import load_json, load_schema
 
@@ -30,6 +27,7 @@ def test_import_error_fallback():
     # We simulate relative import failure by intercepting package context.
     with patch.dict("sys.modules", {".": None}):
         import importlib
+
         import src.main
         importlib.reload(src.main)
         
