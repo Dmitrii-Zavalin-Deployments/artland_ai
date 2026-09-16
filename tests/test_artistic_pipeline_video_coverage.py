@@ -7,9 +7,10 @@ path insertions, processor delegations, and error handling protocols for the
 video-ready photo pipeline.
 """
 
-import sys
 import importlib
+import sys
 from pathlib import Path
+
 import pytest
 
 import artistic_pipeline_video
