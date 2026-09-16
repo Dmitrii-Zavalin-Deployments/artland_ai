@@ -1,12 +1,50 @@
 # tests/test_artistic_pipeline_video_coverage.py
+"""
+Literate Test Suite: Artistic Pipeline Video Coverage & Edge Cases
+==================================================================
+Narrative verification ensuring absolute 100% test coverage across all branches,
+path insertions, processor delegations, and error handling protocols for the 
+video-ready photo pipeline.
+"""
+
+import sys
+import importlib
+from pathlib import Path
 import pytest
 
 import artistic_pipeline_video
 from state import State
 
 
+def test_sys_path_insertion_coverage():
+    """
+    Narrative: When the parent directory of artistic_pipeline_video is temporarily
+    removed from sys.path, importing or reloading the module forces the execution 
+    of the dynamic path insertion guard (Line 10), ensuring complete branch coverage.
+    """
+    parent_path_str = str(Path(artistic_pipeline_video.__file__).resolve().parent.parent)
+    
+    # We temporarily sanitize sys.path to evict the parent path.
+    original_path = list(sys.path)
+    try:
+        while parent_path_str in sys.path:
+            sys.path.remove(parent_path_str)
+            
+        # Reloading the module triggers the conditional sys.path insertion.
+        importlib.reload(artistic_pipeline_video)
+        
+        # We assert that the parent path was successfully restored into sys.path.
+        assert parent_path_str in sys.path
+    finally:
+        sys.path[:] = original_path
+        importlib.reload(artistic_pipeline_video)
+
+
 def test_video_pipeline_no_frames_raises_value_error(setup_pipeline_environment, tmp_path):
-    """Covers line 34: ValueError when frame_paths is empty or missing."""
+    """
+    Narrative: When state.frame_paths is empty or undefined, the video pipeline 
+    must enforce the No-Default Policy by immediately raising a ValueError.
+    """
     state = State({}, {}, tmp_path)
     state.frame_paths = []
 
@@ -15,8 +53,11 @@ def test_video_pipeline_no_frames_raises_value_error(setup_pipeline_environment,
 
 
 def test_video_pipeline_different_and_same_file_copy(setup_pipeline_environment, tmp_path, monkeypatch):
-    """Covers line 43: shutil.copy execution when source and destination are distinct."""
-    # 1. External frame path (triggers shutil.copy)
+    """
+    Narrative: The pipeline correctly handles both external frames (triggering shutil.copy)
+    and internal frames where source and destination resolve identically, preventing SameFileErrors.
+    """
+    # 1. External frame path (triggers shutil.copy to working directory)
     external_dir = tmp_path / "external_source"
     external_dir.mkdir(parents=True, exist_ok=True)
     external_frame = external_dir / "sample.jpg"
@@ -31,7 +72,7 @@ def test_video_pipeline_different_and_same_file_copy(setup_pipeline_environment,
     artistic_pipeline_video.run(state)
     assert state.results["status"] == "success"
 
-    # 2. Frame path already inside original_dir (bypasses shutil.copy / same-file resolution)
+    # 2. Frame path already inside original_dir (bypasses shutil.copy via same-file resolution guard)
     internal_frame = state.original_dir / "internal.jpg"
     internal_frame.write_bytes(b"dummy image content")
 
@@ -43,7 +84,10 @@ def test_video_pipeline_different_and_same_file_copy(setup_pipeline_environment,
 
 
 def test_video_pipeline_missing_processor_run_attribute(setup_pipeline_environment, tmp_path, monkeypatch):
-    """Covers line 50: AttributeError when artistic_painting_processor lacks a 'run' method."""
+    """
+    Narrative: If the artistic_painting_processor lacks a 'run' method, the pipeline 
+    must raise an AttributeError upholding the No-Default Policy contract.
+    """
     frame = tmp_path / "sample.jpg"
     frame.write_bytes(b"dummy image content")
 
@@ -58,7 +102,10 @@ def test_video_pipeline_missing_processor_run_attribute(setup_pipeline_environme
 
 
 def test_video_pipeline_missing_working_file_raises_file_not_found(setup_pipeline_environment, tmp_path, monkeypatch):
-    """Covers line 57: FileNotFoundError when processor fails to create the output file."""
+    """
+    Narrative: If a processed working frame file is deleted or missing after processing steps,
+    the pipeline must raise a FileNotFoundError in compliance with the No-Default Policy.
+    """
     frame = tmp_path / "sample.jpg"
     frame.write_bytes(b"dummy image content")
 
@@ -66,7 +113,7 @@ def test_video_pipeline_missing_working_file_raises_file_not_found(setup_pipelin
     state.frame_paths = [frame]
 
     import processor.artistic_painting_processor as app
-    # Processor runs but deletes/fails to generate the working file
+    
     def corrupt_run(s):
         if s.current_frame_path.exists():
             s.current_frame_path.unlink()
@@ -80,7 +127,10 @@ def test_video_pipeline_missing_working_file_raises_file_not_found(setup_pipelin
 
 
 def test_video_pipeline_results_none_initialization(setup_pipeline_environment, tmp_path, monkeypatch):
-    """Covers line 71: Initializes state.results to {} when it is explicitly None on success."""
+    """
+    Narrative: When state.results is initialized to None, the pipeline must safely initialize
+    it into a dictionary upon successful completion.
+    """
     frame = tmp_path / "sample.jpg"
     frame.write_bytes(b"dummy image content")
 
@@ -97,13 +147,16 @@ def test_video_pipeline_results_none_initialization(setup_pipeline_environment, 
 
 
 def test_video_pipeline_exception_handling_block(setup_pipeline_environment, tmp_path, monkeypatch):
-    """Covers lines 76-82: Global exception handler, error state capture, and logging."""
+    """
+    Narrative: The global exception handler captures unexpected runtime errors, initializes
+    missing result dictionaries, and correctly logs the critical pipeline halt.
+    """
     frame = tmp_path / "sample.jpg"
     frame.write_bytes(b"dummy image content")
 
     state = State({}, {}, tmp_path)
     state.frame_paths = [frame]
-    state.results = None  # Test results initialization inside exception block (line 77-78)
+    state.results = None  # Test results initialization inside exception block
 
     import processor.artistic_painting_processor as app
     def raise_runtime_error(s):
