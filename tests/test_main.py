@@ -118,7 +118,7 @@ def test_main_schema_validation_error(tmp_path):
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
-    (config_dir / "config.json").write_text('{"target_fps": 30}', encoding="utf-8")
+    (config_dir / "config.json").write_text('{"target_fps": 30, "artistic_painting": {}}', encoding="utf-8")
 
     schema_dir = Path("schema")
     schema_dir.mkdir(exist_ok=True)
@@ -163,7 +163,7 @@ def test_main_successful_execution(tmp_path, monkeypatch):
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
-    (config_dir / "config.json").write_text('{"target_fps": 30}', encoding="utf-8")
+    (config_dir / "config.json").write_text('{"target_fps": 30, "artistic_painting": {}}', encoding="utf-8")
 
     schema_dir = Path("schema")
     schema_dir.mkdir(exist_ok=True)
@@ -213,7 +213,7 @@ def test_main_pipeline_step_error_halts(tmp_path, monkeypatch):
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
-    (config_dir / "config.json").write_text('{"target_fps": 30}', encoding="utf-8")
+    (config_dir / "config.json").write_text('{"target_fps": 30, "artistic_painting": {}}', encoding="utf-8")
 
     schema_dir = Path("schema")
     schema_dir.mkdir(exist_ok=True)
@@ -264,7 +264,7 @@ def test_main_global_exception_handler(tmp_path, monkeypatch):
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
-    (config_dir / "config.json").write_text('{"target_fps": 30}', encoding="utf-8")
+    (config_dir / "config.json").write_text('{"target_fps": 30, "artistic_painting": {}}', encoding="utf-8")
 
     schema_dir = Path("schema")
     schema_dir.mkdir(exist_ok=True)
