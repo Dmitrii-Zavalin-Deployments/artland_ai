@@ -57,7 +57,6 @@ def test_import_error_fallback():
     # We simulate relative import failure by intercepting package context.
     with patch.dict("sys.modules", {".": None}):
         import importlib
-
         import src.main
         importlib.reload(src.main)
         
@@ -266,9 +265,11 @@ def test_main_global_exception_handler(tmp_path, monkeypatch):
         "--output_file_name", "output.json"
     ]
 
-    with patch.object(sys, "argv", test_args):
-        with pytest.raises(RuntimeError, match="Unexpected crash in loader"):
-            main()
+    # Combined single with statement satisfying SIM117 without noqa
+    with patch.object(sys, "argv", test_args), pytest.raises(
+        RuntimeError, match="Unexpected crash in loader"
+    ):
+        main()
 
     output_path = folder / "output.json"
     assert output_path.exists()
