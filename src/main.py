@@ -11,22 +11,32 @@ from pathlib import Path
 
 from jsonschema import ValidationError, validate
 
-import artistic_pipeline_magazine
-import artistic_pipeline_video
-import frames_loader
-import zip_builder
-from state import State
+try:
+    from . import artistic_pipeline_magazine, artistic_pipeline_video, frames_loader, zip_builder
+    from .state import State
+except ImportError:
+    import artistic_pipeline_magazine
+    import artistic_pipeline_video
+    import frames_loader
+    import zip_builder
+    from state import State
 
 logger = logging.getLogger(__name__)
 
 
 def load_json(path):
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"Required JSON file not found at path: {path}")
     logger.debug("Loading JSON from file: %s", path)
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def load_schema(path):
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"Required schema file not found at path: {path}")
     logger.debug("Loading schema from file: %s", path)
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -53,19 +63,21 @@ def main():
     config_json_path = Path("config/config.json")
     output_json_path = base / args.output_file_name
 
-    # Load JSONs with encoding
-    input_data = load_json(input_json_path)
-    config_data = load_json(config_json_path)
-
-    # Validate schemas
     try:
+        # Load JSONs with encoding and existence checking
+        logger.info("Loading input configuration and operational payloads...")
+        input_data = load_json(input_json_path)
+        config_data = load_json(config_json_path)
+
+        # Validate schemas
         logger.info("Validating input and config JSON schemas.")
         validate(input_data, load_schema("schema/input_schema.json"))
         validate(config_data, load_schema("schema/config_schema.json"))
-    except ValidationError as e:
+        
+    except (ValidationError, FileNotFoundError, json.JSONDecodeError) as e:
         error_state = {
-            "inputs": input_data,
-            "config": config_data,
+            "inputs": locals().get("input_data", {}),
+            "config": locals().get("config_data", {}),
             "results": {
                 "status": "error",
                 "error": str(e)
@@ -74,7 +86,7 @@ def main():
         output_json_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_json_path, "w", encoding="utf-8") as f:
             json.dump(error_state, f, indent=2)
-        logger.error("❌ SCHEMA VALIDATION FAILED: %s", e)
+        logger.error("❌ SCHEMA VALIDATION OR LOADING FAILED: %s", e)
         return
 
     # Create state container
