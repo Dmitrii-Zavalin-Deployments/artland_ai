@@ -112,7 +112,8 @@ def test_main_schema_validation_error(tmp_path):
     dummy_zip = folder / "dummy.zip"
     import zipfile
     with zipfile.ZipFile(dummy_zip, "w") as zf:
-        zf.writestr("sample.txt", "data")
+        png_bytes = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        zf.writestr("frame_01.png", png_bytes)
     input_file.write_text(json.dumps({"input_zip_path": str(dummy_zip), "invalid_field": True}), encoding="utf-8")
 
     config_dir = Path("config")
@@ -156,7 +157,8 @@ def test_main_successful_execution(tmp_path, monkeypatch):
     dummy_zip = folder / "dummy.zip"
     import zipfile
     with zipfile.ZipFile(dummy_zip, "w") as zf:
-        zf.writestr("sample.txt", "data")
+        png_bytes = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        zf.writestr("frame_01.png", png_bytes)
     input_file.write_text(json.dumps({"input_zip_path": str(dummy_zip), "valid_key": "value"}), encoding="utf-8")
 
     config_dir = Path("config")
@@ -205,7 +207,8 @@ def test_main_pipeline_step_error_halts(tmp_path, monkeypatch):
     dummy_zip = folder / "dummy.zip"
     import zipfile
     with zipfile.ZipFile(dummy_zip, "w") as zf:
-        zf.writestr("sample.txt", "data")
+        png_bytes = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        zf.writestr("frame_01.png", png_bytes)
     input_file.write_text(json.dumps({"input_zip_path": str(dummy_zip), "valid_key": "value"}), encoding="utf-8")
 
     config_dir = Path("config")
@@ -255,7 +258,8 @@ def test_main_global_exception_handler(tmp_path, monkeypatch):
     dummy_zip = folder / "dummy.zip"
     import zipfile
     with zipfile.ZipFile(dummy_zip, "w") as zf:
-        zf.writestr("sample.txt", "data")
+        png_bytes = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        zf.writestr("frame_01.png", png_bytes)
     input_file.write_text(json.dumps({"input_zip_path": str(dummy_zip), "valid_key": "value"}), encoding="utf-8")
 
     config_dir = Path("config")
