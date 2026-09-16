@@ -6,9 +6,10 @@ Narrative verification ensuring absolute 100% test coverage across all branches,
 path insertions, processor delegations, and error handling protocols.
 """
 
-import sys
 import importlib
+import sys
 from pathlib import Path
+
 import pytest
 
 import artistic_pipeline_magazine
