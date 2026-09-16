@@ -109,7 +109,7 @@ def test_main_schema_validation_error(tmp_path):
     folder.mkdir(parents=True, exist_ok=True)
 
     input_file = folder / "input.json"
-    input_file.write_text('{"invalid_field": true}', encoding="utf-8")
+    input_file.write_text('{"input_zip_path": "dummy.zip", "invalid_field": true}', encoding="utf-8")
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
@@ -137,7 +137,7 @@ def test_main_schema_validation_error(tmp_path):
     assert output_path.exists()
     output_data = json.loads(output_path.read_text(encoding="utf-8"))
     assert output_data["results"]["status"] == "error"
-    assert "ValidationError" in output_data["results"]["error"]
+    assert "required property" in output_data["results"]["error"]
 
 
 def test_main_successful_execution(tmp_path, monkeypatch):
@@ -149,7 +149,7 @@ def test_main_successful_execution(tmp_path, monkeypatch):
     folder.mkdir(parents=True, exist_ok=True)
 
     input_file = folder / "input.json"
-    input_file.write_text('{"valid_key": "value"}', encoding="utf-8")
+    input_file.write_text('{"input_zip_path": "dummy.zip", "valid_key": "value"}', encoding="utf-8")
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
@@ -194,7 +194,7 @@ def test_main_pipeline_step_error_halts(tmp_path, monkeypatch):
     folder.mkdir(parents=True, exist_ok=True)
 
     input_file = folder / "input.json"
-    input_file.write_text('{"valid_key": "value"}', encoding="utf-8")
+    input_file.write_text('{"input_zip_path": "dummy.zip", "valid_key": "value"}', encoding="utf-8")
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
@@ -240,7 +240,7 @@ def test_main_global_exception_handler(tmp_path, monkeypatch):
     folder.mkdir(parents=True, exist_ok=True)
 
     input_file = folder / "input.json"
-    input_file.write_text('{"valid_key": "value"}', encoding="utf-8")
+    input_file.write_text('{"input_zip_path": "dummy.zip", "valid_key": "value"}', encoding="utf-8")
 
     config_dir = Path("config")
     config_dir.mkdir(exist_ok=True)
