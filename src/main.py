@@ -12,7 +12,12 @@ from pathlib import Path
 from jsonschema import ValidationError, validate
 
 try:
-    from . import artistic_pipeline_magazine, artistic_pipeline_video, frames_loader, zip_builder
+    from . import (
+        artistic_pipeline_magazine,
+        artistic_pipeline_video,
+        frames_loader,
+        zip_builder,
+    )
     from .state import State
 except ImportError:
     import artistic_pipeline_magazine
