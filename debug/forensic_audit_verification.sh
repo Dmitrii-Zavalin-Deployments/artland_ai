@@ -1,45 +1,42 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Forensic Audit & Automated Remediation Script for FileNotFoundError (dummy.zip)
+# Forensic Audit & Automated Remediation Script for zipfile.BadZipFile Error
 # ==============================================================================
 set -euo pipefail
 
-echo "=== 2. SMOKING-GUN SOURCE AUDIT: Inspecting test setup lines in tests/test_main.py ==="
-grep -n -C 5 "input_zip_path" tests/test_main.py | cat -n
+echo "=== 1. DIAGNOSTICS: Running pytest to confirm BadZipFile failures ==="
+pytest tests/test_main.py || true
 
-echo "=== 3. AUTOMATED REMEDIATION: Creating dummy.zip dynamically in test fixtures ==="
+echo "=== 2. SMOKING-GUN SOURCE AUDIT: Inspecting dummy.zip creation in tests/test_main.py ==="
+grep -n -C 5 "dummy.zip" tests/test_main.py | cat -n
+
+echo "=== 3. AUTOMATED REMEDIATION: Replacing empty touch() with valid minimal zip creation ==="
 python3 -c '
 path = "tests/test_main.py"
 with open(path, "r", encoding="utf-8") as f:
     content = f.read()
 
-# Replace the static input writing blocks with dynamic file creation for dummy.zip
-old_block_valid = """    input_file = folder / "input.json"
-    input_file.write_text(\x27{"input_zip_path": "dummy.zip", "valid_key": "value"}\x27, encoding="utf-8")"""
+# Target statement creating an empty file via touch()
+target = "dummy_zip.touch()"
 
-new_block_valid = """    input_file = folder / "input.json"
-    dummy_zip = folder / "dummy.zip"
-    dummy_zip.touch()
-    input_file.write_text(json.dumps({"input_zip_path": str(dummy_zip), "valid_key": "value"}), encoding="utf-8")"""
+# Replacement creating a valid minimal zip file using Python zipfile module
+replacement = """import zipfile
+    with zipfile.ZipFile(dummy_zip, "w") as zf:
+        zf.writestr("sample.txt", "data")"""
 
-old_block_invalid = """    input_file = folder / "input.json"
-    input_file.write_text(\x27{"input_zip_path": "dummy.zip", "invalid_field": true}\x27, encoding="utf-8")"""
-
-new_block_invalid = """    input_file = folder / "input.json"
-    dummy_zip = folder / "dummy.zip"
-    dummy_zip.touch()
-    input_file.write_text(json.dumps({"input_zip_path": str(dummy_zip), "invalid_field": True}), encoding="utf-8")"""
-
-content = content.replace(old_block_valid, new_block_valid)
-content = content.replace(old_block_invalid, new_block_invalid)
-
-with open(path, "w", encoding="utf-8") as f:
-    f.write(content)
-
-print("SUCCESS: Patched test fixtures to dynamically touch and reference dummy.zip.")
+if target in content:
+    content = content.replace(target, replacement)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+    print("SUCCESS: Replaced dummy_zip.touch() with valid zip file creation.")
+else:
+    print("INFO: Target touch() statement not found or already replaced.")
 '
 
 echo "=== 4. POST-REPAIR AUDIT: Verifying updated test code segment ==="
-sed -n '30,55p' tests/test_main.py | cat -n
+grep -n -C 5 "zipfile.ZipFile" tests/test_main.py | cat -n
+
+echo "=== 5. VERIFICATION: Running full test suite with 100% coverage check ==="
+pytest --cov=src --cov-fail-under=100 -v
 
 echo "🎯 Forensic audit, remediation, and verification completed successfully!"
