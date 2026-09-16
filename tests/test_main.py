@@ -57,6 +57,7 @@ def test_import_error_fallback():
     # We simulate relative import failure by intercepting package context.
     with patch.dict("sys.modules", {".": None}):
         import importlib
+
         import src.main
         importlib.reload(src.main)
         
