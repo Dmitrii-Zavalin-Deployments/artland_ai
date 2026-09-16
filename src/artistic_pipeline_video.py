@@ -1,9 +1,18 @@
 # src/artistic_pipeline_video.py
 import logging
 import shutil
+import sys
 from pathlib import Path
 
-from processor import artistic_painting_processor
+# Ensure the parent directory is in sys.path to guarantee flawless package resolution
+current_dir = Path(__file__).resolve().parent
+if str(current_dir.parent) not in sys.path:
+    sys.path.insert(0, str(current_dir.parent))
+
+try:
+    from .processor import artistic_painting_processor
+except ImportError:
+    from processor import artistic_painting_processor
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +27,7 @@ def run(state):
           * set `state.current_frame_path`
           * run artistic_painting_processor.run(state)
           * DO NOT run add_fading_edges.py
-          * strictly verify and save output to processed_dir_video/<name>.jpg
+          * strictly verify and save output to processed_dir_video/.jpg
     Enforces No-Default Policy: Fails immediately if processors or outputs are missing.
     """
     logger.info("Starting artistic pipeline video execution.")

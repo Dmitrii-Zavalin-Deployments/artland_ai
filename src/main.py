@@ -7,9 +7,15 @@ warnings.filterwarnings("ignore", category=UserWarning, module="skimage.*")
 import argparse
 import json
 import logging
+import sys
 from pathlib import Path
 
 from jsonschema import ValidationError, validate
+
+# Ensure the parent directory is in sys.path to guarantee flawless package resolution
+current_dir = Path(__file__).resolve().parent
+if str(current_dir.parent) not in sys.path:
+    sys.path.insert(0, str(current_dir.parent))
 
 try:
     from . import (

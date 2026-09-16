@@ -1,16 +1,32 @@
 # src/artistic_pipeline_magazine.py
 import logging
 import shutil
+import sys
 from pathlib import Path
 
-from processor import (
-    add_fading_edges,
-    artistic_painting_processor,
-    expand_image,
-    generate_background,
-    generate_cover,
-    generate_photo_pdf,
-)
+# Ensure the parent directory is in sys.path to guarantee flawless package resolution
+current_dir = Path(__file__).resolve().parent
+if str(current_dir.parent) not in sys.path:
+    sys.path.insert(0, str(current_dir.parent))
+
+try:
+    from .processor import (
+        add_fading_edges,
+        artistic_painting_processor,
+        expand_image,
+        generate_background,
+        generate_cover,
+        generate_photo_pdf,
+    )
+except ImportError:
+    from processor import (
+        add_fading_edges,
+        artistic_painting_processor,
+        expand_image,
+        generate_background,
+        generate_cover,
+        generate_photo_pdf,
+    )
 
 logger = logging.getLogger(__name__)
 
