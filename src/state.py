@@ -1,7 +1,7 @@
 # src/state.py
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class State:
         self.inputs = inputs
         self.config = config
         self.results = {
-            "date_time": datetime.now(timezone.utc).isoformat(),
+            "date_time": datetime.now(UTC).isoformat(),
             "status": "success",
             "error": ""
         }
@@ -48,7 +48,7 @@ class State:
         try:
             # Ensure date_time is present and up to date when writing output
             if "date_time" not in self.results:
-                self.results["date_time"] = datetime.now(timezone.utc).isoformat()
+                self.results["date_time"] = datetime.now(UTC).isoformat()
                 
             output_data = {
                 "inputs": self.inputs,
